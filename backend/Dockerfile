@@ -17,7 +17,7 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl openssl
 
 COPY package*.json ./
 COPY prisma ./prisma/
