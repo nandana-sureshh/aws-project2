@@ -66,8 +66,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:3000
     container_name: caresync-frontend
     ports:
       - "80:80"
