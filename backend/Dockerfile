@@ -9,6 +9,7 @@ RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src/
+COPY scripts ./scripts/
 
 RUN npm run db:generate
 RUN npm run build
@@ -27,11 +28,14 @@ RUN npm ci
 RUN npm run db:generate
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/scripts ./scripts/
 
 RUN mkdir -p ./uploads/documents ./uploads/prescriptions
 
 COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+# Normalise line endings to LF — prevents "not found" errors on Alpine when
+# the file was committed on Windows with CRLF endings.
+RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 EXPOSE 3000
 
