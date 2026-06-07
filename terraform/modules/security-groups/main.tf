@@ -102,11 +102,21 @@ resource "aws_security_group" "backend" {
   vpc_id      = var.vpc_id
 
   ingress {
-    description     = "Application Traffic"
+    description     = "API Traffic from Internal ALB"
     from_port       = 3000
     to_port         = 3000
     protocol        = "tcp"
     security_groups = [aws_security_group.internal_alb.id]
+  }
+
+  # External ALB routes /api/* directly to this target group via path-based routing.
+  # The External ALB SG must also be allowed to reach port 3000.
+  ingress {
+    description     = "API Traffic from External ALB (path-based routing)"
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    security_groups = [aws_security_group.external_alb.id]
   }
 
   ingress {

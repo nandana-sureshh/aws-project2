@@ -5,6 +5,7 @@ import { NotificationProvider } from '../providers/interfaces/NotificationProvid
 import { EventProvider } from '../providers/interfaces/EventProvider';
 import { QueueProvider } from '../providers/interfaces/QueueProvider';
 import { LocalStorageProvider } from '../providers/implementations/LocalStorageProvider';
+import { S3StorageProvider } from '../providers/implementations/S3StorageProvider';
 import { DatabaseNotificationProvider } from '../providers/implementations/DatabaseNotificationProvider';
 import { ConsoleEventProvider } from '../providers/implementations/ConsoleEventProvider';
 import { LocalQueueProvider } from '../providers/implementations/LocalQueueProvider';
@@ -12,17 +13,35 @@ import { LocalQueueProvider } from '../providers/implementations/LocalQueueProvi
 /**
  * Provider Registry — AWS Migration Point
  *
- * To migrate to AWS:
- * 1. Create the AWS provider implementation (e.g., S3StorageProvider)
- * 2. Change the return value below to use the new implementation
- * 3. Zero changes to business logic, services, or controllers required
+ * Storage routing:
+ *   STORAGE_PROVIDER=local  → LocalStorageProvider (default for dev)
+ *   STORAGE_PROVIDER=s3     → S3StorageProvider (AWS production)
+ *
+ * On AWS: set STORAGE_PROVIDER=s3, S3_BUCKET_NAME, AWS_REGION via .env.aws
  */
 
 export function createStorageProvider(): StorageProvider {
+  const storageProvider = process.env.STORAGE_PROVIDER ?? 'local';
+
+  if (storageProvider === 's3') {
+    const bucketName = process.env.S3_BUCKET_NAME;
+    const region = process.env.AWS_REGION ?? 'us-east-1';
+
+    if (!bucketName) {
+      throw new Error(
+        'S3_BUCKET_NAME environment variable is required when STORAGE_PROVIDER=s3'
+      );
+    }
+
+    console.log(`📦 Storage: S3 (bucket: ${bucketName}, region: ${region})`);
+    return new S3StorageProvider(bucketName, region);
+  }
+
+  // Default: local filesystem storage
   const uploadsDir = path.resolve(process.env.UPLOADS_DIR ?? './uploads');
   const baseUrl = `http://localhost:${process.env.PORT ?? 3000}`;
+  console.log(`📂 Storage: Local (dir: ${uploadsDir})`);
   return new LocalStorageProvider(uploadsDir, baseUrl);
-  // Future: return new S3StorageProvider(process.env.S3_BUCKET_NAME!, process.env.AWS_REGION!);
 }
 
 export function createNotificationProvider(prisma: PrismaClient): NotificationProvider {

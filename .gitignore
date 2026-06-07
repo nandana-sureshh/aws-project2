@@ -58,3 +58,11 @@ terraform/**/*.tfstate
 terraform/**/*.tfstate.*
 terraform/**/crash.log
 terraform/providers/
+# terraform.tfvars contains sensitive values — NEVER commit
+terraform/terraform.tfvars
+# Terraform plan output
+terraform/plan.out
+
+# AWS environment files (contain secret names/config for EC2)
+.env.aws
+backend/.env.aws

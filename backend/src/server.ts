@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { initSecrets } from './config/secrets';
 import app from './app';
 import prisma from './config/database';
 
@@ -7,9 +8,16 @@ const HOST = process.env.HOST ?? '0.0.0.0';
 
 async function start() {
   try {
+    // --- Step 1: Load secrets from AWS Secrets Manager (if configured) ---
+    // On AWS: reads DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET from Secrets Manager
+    // Locally: skips and uses .env values — no change to local dev workflow
+    await initSecrets();
+
+    // --- Step 2: Connect to database (DATABASE_URL now set correctly) ---
     await prisma.$connect();
     console.log('✅ Database connected');
 
+    // --- Step 3: Start HTTP server ---
     const server = app.listen(PORT, HOST, () => {
       console.log(`🚀 CareSync API running at http://${HOST}:${PORT}`);
       console.log(`📖 Swagger UI:   http://localhost:${PORT}/api/docs`);

@@ -1,0 +1,35 @@
+# ===========================================================================
+# docker-compose.backend.yml — Backend EC2 instances only
+#
+# Used by the Backend Launch Template user data.
+# Runs Node.js/Express API connected to Amazon RDS.
+#
+# Key design decisions:
+#   - NO postgres service — uses Amazon RDS (DATABASE_URL from Secrets Manager)
+#   - NO frontend service — frontend runs on separate EC2 instances
+#   - NO hardcoded secrets — application reads from AWS Secrets Manager on startup
+#   - env_file points to .env.aws (written by user data, contains non-secret config)
+#   - The IAM instance profile grants Secrets Manager + S3 + KMS access
+# ===========================================================================
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: caresync-backend
+    env_file:
+      # Written by Launch Template user data using printf (no leading whitespace)
+      - .env.aws
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      # Give the app time to start: Docker build + Secrets Manager fetch + Prisma connect
+      start_period: 120s

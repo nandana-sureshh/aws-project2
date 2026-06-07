@@ -6,6 +6,10 @@ output "backend_target_group_arn" {
   value = aws_lb_target_group.backend.arn
 }
 
+output "internal_backend_target_group_arn" {
+  value = aws_lb_target_group.internal_backend.arn
+}
+
 output "external_alb_dns_name" {
   value = aws_lb.external.dns_name
 }
