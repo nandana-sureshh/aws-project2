@@ -116,7 +116,7 @@ resource "aws_launch_template" "frontend" {
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = 2
   }
 
   user_data = base64encode(local.frontend_userdata)
@@ -273,7 +273,7 @@ resource "aws_launch_template" "backend" {
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = 2
   }
 
   user_data = base64encode(local.backend_userdata)
