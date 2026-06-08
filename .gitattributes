@@ -1,0 +1,66 @@
+# ===========================================================================
+# .gitattributes
+#
+# Enforces consistent line endings and file encoding across all platforms.
+# This prevents Windows editors from introducing UTF-16 BOM or CRLF line
+# endings into files that require strict UTF-8 encoding (Prisma migrations,
+# shell scripts, Dockerfiles).
+#
+# Rule of thumb:
+#   text=auto   — Git normalises to LF in the repo, checks out with platform
+#                 line endings (CRLF on Windows)
+#   eol=lf      — Always store AND check out with LF (for scripts, configs)
+#   binary      — Never touch the file
+# ===========================================================================
+
+# --- Default: normalise all text files to LF in the repo ---
+* text=auto eol=lf
+
+# --- Shell scripts: must be LF — CRLF breaks Alpine/bash ---
+*.sh        text eol=lf
+
+# --- SQL migrations: must be UTF-8 LF — Prisma rejects BOM or CRLF ---
+*.sql       text eol=lf
+
+# --- Prisma schema and lock files ---
+*.prisma    text eol=lf
+*.toml      text eol=lf
+
+# --- Docker ---
+Dockerfile  text eol=lf
+*.dockerfile text eol=lf
+
+# --- YAML / JSON / TypeScript / JavaScript ---
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.jsx       text eol=lf
+
+# --- Terraform ---
+*.tf        text eol=lf
+*.tfvars    text eol=lf
+*.hcl       text eol=lf
+
+# --- Nginx config ---
+*.conf      text eol=lf
+
+# --- Markdown and documentation ---
+*.md        text eol=lf
+
+# --- True binaries: never modify ---
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.zip       binary
+*.gz        binary
+*.lock      text eol=lf
