@@ -22,6 +22,7 @@ RUN apk add --no-cache curl openssl
 
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY tsconfig.json ./
 
 RUN npm ci
 
