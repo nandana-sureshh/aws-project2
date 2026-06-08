@@ -62,6 +62,21 @@ export async function register(body: unknown, ipAddress?: string) {
     await prisma.patient.create({ data: { userId: user.id } });
   }
 
+  if (data.role === 'DOCTOR') {
+    // Create a skeleton Doctor profile so the user immediately appears in
+    // the patient appointment-booking dropdown (getAllDoctors filters on
+    // isAvailable=true in the doctors table — not the users table).
+    // The doctor can fill in specialization, phone, etc. via PATCH /doctors/profile.
+    await prisma.doctor.create({
+      data: {
+        userId: user.id,
+        specialization: 'General Medicine',
+        licenseNumber: `PENDING-${user.id.slice(0, 8).toUpperCase()}`,
+        isAvailable: true,
+      },
+    });
+  }
+
   await createAuditLog({
     userId: user.id,
     action: 'REGISTER',

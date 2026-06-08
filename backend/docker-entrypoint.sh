@@ -32,7 +32,7 @@ echo "=== [2/4] Running database migrations ==="
 npx prisma migrate deploy
 
 echo "=== [3/4] Running database seed ==="
-npx ts-node prisma/seed.ts 2>/dev/null || echo "Seed skipped (data may already exist or ts-node unavailable)"
+npx ts-node prisma/seed.ts || echo "Seed encountered an error (see above) — continuing startup"
 
 echo "=== [4/4] Starting application ==="
 exec "$@"
