@@ -48,8 +48,6 @@ backend/uploads/
 # TypeScript
 *.tsbuildinfo
 
-# Prisma
-backend/prisma/migrations/
 
 
 # Terraform
