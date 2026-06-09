@@ -183,7 +183,10 @@ export const handler = async (event) => {
 
   try {
     const databaseUrl = await getDatabaseUrl();
-    dbClient = new Client({ connectionString: databaseUrl });
+    dbClient = new Client({ 
+      connectionString: databaseUrl,
+      ssl: { rejectUnauthorized: false }
+    });
     await dbClient.connect();
     console.log('[db] Connected to RDS');
 

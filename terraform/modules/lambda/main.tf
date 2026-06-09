@@ -29,7 +29,7 @@
 
 resource "aws_security_group" "lambda" {
   name        = "${var.project_name}-${var.environment}-lambda-sg"
-  description = "Lambda functions — egress to RDS (5432) and AWS APIs (443)"
+  description = "Lambda functions - egress to RDS (5432) and AWS APIs (443)"
   vpc_id      = var.vpc_id
 
   egress {
@@ -120,9 +120,13 @@ resource "aws_iam_role_policy" "reminder_kms" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Sid    = "DecryptWithCMK"
+      Sid    = "UseCMK"
       Effect = "Allow"
-      Action = ["kms:Decrypt", "kms:DescribeKey"]
+      Action = [
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+        "kms:DescribeKey"
+      ]
       Resource = var.kms_key_arn
     }]
   })
@@ -389,7 +393,7 @@ resource "aws_lambda_function" "notification_cleanup" {
 
 resource "aws_iam_role" "scheduler" {
   name        = "${var.project_name}-${var.environment}-scheduler-role"
-  description = "EventBridge Scheduler role — invoke CareSync Lambda functions"
+  description = "EventBridge Scheduler role - invoke CareSync Lambda functions"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -435,7 +439,7 @@ resource "aws_iam_role_policy" "scheduler_invoke" {
 
 resource "aws_scheduler_schedule" "appointment_reminder" {
   name        = "${var.project_name}-${var.environment}-appointment-reminder"
-  description = "Daily appointment reminder — runs at 08:00 UTC, finds next-24h appointments"
+  description = "Daily appointment reminder - runs at 08:00 UTC, finds next-24h appointments"
   group_name  = "default"
 
   schedule_expression          = var.reminder_schedule
@@ -459,7 +463,7 @@ resource "aws_scheduler_schedule" "appointment_reminder" {
 
 resource "aws_scheduler_schedule" "notification_cleanup" {
   name        = "${var.project_name}-${var.environment}-notification-cleanup"
-  description = "Daily notification cleanup — runs at 02:00 UTC, deletes records older than RETENTION_DAYS"
+  description = "Daily notification cleanup - runs at 02:00 UTC, deletes records older than RETENTION_DAYS"
   group_name  = "default"
 
   schedule_expression          = var.cleanup_schedule
