@@ -234,3 +234,18 @@ module "lambda" {
 
   depends_on = [module.cloudwatch]
 }
+
+# ===========================================================================
+# PHASE 6 MODULES — CloudFront CDN
+# ===========================================================================
+
+module "cloudfront" {
+  source = "./modules/cloudfront"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  # Consume the existing External ALB DNS name as the CloudFront origin.
+  # No ALB resource is modified — only the DNS string is passed.
+  alb_dns_name = module.alb.external_alb_dns_name
+}

@@ -120,3 +120,25 @@ output "lambda_security_group_id" {
   description = "Security group ID attached to both Lambda functions"
   value       = module.lambda.lambda_security_group_id
 }
+
+# --- CloudFront ---
+
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain name — set VITE_API_URL=https://<value> and rebuild frontend"
+  value       = module.cloudfront.cloudfront_domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID — use for cache invalidation: aws cloudfront create-invalidation --distribution-id <value> --paths '/*'"
+  value       = module.cloudfront.cloudfront_distribution_id
+}
+
+output "cloudfront_hosted_zone_id" {
+  description = "CloudFront hosted zone ID — use when adding a Route53 alias record in a future phase"
+  value       = module.cloudfront.cloudfront_hosted_zone_id
+}
+
+output "cloudfront_arn" {
+  description = "CloudFront distribution ARN — use when attaching a WAF WebACL in a future phase"
+  value       = module.cloudfront.cloudfront_arn
+}
