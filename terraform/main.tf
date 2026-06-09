@@ -236,6 +236,17 @@ module "lambda" {
 }
 
 # ===========================================================================
+# PHASE 7 MODULES — WAF
+# ===========================================================================
+
+module "waf" {
+  source = "./modules/waf"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+# ===========================================================================
 # PHASE 6 MODULES — CloudFront CDN
 # ===========================================================================
 
@@ -248,4 +259,5 @@ module "cloudfront" {
   # Consume the existing External ALB DNS name as the CloudFront origin.
   # No ALB resource is modified — only the DNS string is passed.
   alb_dns_name = module.alb.external_alb_dns_name
+  web_acl_arn  = module.waf.web_acl_arn
 }

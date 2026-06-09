@@ -142,3 +142,10 @@ output "cloudfront_arn" {
   description = "CloudFront distribution ARN — use when attaching a WAF WebACL in a future phase"
   value       = module.cloudfront.cloudfront_arn
 }
+
+# --- WAF ---
+
+output "waf_web_acl_arn" {
+  description = "ARN of the WAFv2 WebACL attached to CloudFront"
+  value       = module.waf.web_acl_arn
+}

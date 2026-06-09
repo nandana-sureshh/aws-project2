@@ -12,3 +12,9 @@ variable "alb_dns_name" {
   description = "DNS name of the External ALB — used as the CloudFront origin domain"
   type        = string
 }
+
+variable "web_acl_arn" {
+  description = "ARN of the WAFv2 WebACL to associate with CloudFront"
+  type        = string
+  default     = null
+}

@@ -21,6 +21,7 @@ resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   comment             = "${var.project_name}-${var.environment}-cloudfront"
   default_root_object = "index.html"
+  web_acl_id          = var.web_acl_arn
 
   # PriceClass_200: US, Europe, Asia, Middle East, Africa.
   # Chosen because the application is primarily accessed from India / Asia.
