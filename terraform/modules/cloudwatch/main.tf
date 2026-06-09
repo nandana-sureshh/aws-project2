@@ -44,6 +44,40 @@ resource "aws_cloudwatch_log_group" "backend_init" {
 }
 
 # ---------------------------------------------------------------------------
+# Lambda Function Log Groups (Phase 3)
+# AWS Lambda writes to /aws/lambda/<function-name> by default.
+# Creating them explicitly here ensures KMS encryption and retention are
+# applied before the Lambda function runs for the first time.
+# ---------------------------------------------------------------------------
+
+resource "aws_cloudwatch_log_group" "lambda_reminder" {
+  name              = "/aws/lambda/${var.project_name}-${var.environment}-appointment-reminder"
+  retention_in_days = var.log_retention_days_lambda
+  kms_key_id        = var.kms_key_arn
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-lambda-reminder-logs"
+    Environment = var.environment
+    Project     = var.project_name
+    Purpose     = "Appointment reminder Lambda function logs"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "lambda_cleanup" {
+  name              = "/aws/lambda/${var.project_name}-${var.environment}-notification-cleanup"
+  retention_in_days = var.log_retention_days_lambda
+  kms_key_id        = var.kms_key_arn
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-lambda-cleanup-logs"
+    Environment = var.environment
+    Project     = var.project_name
+    Purpose     = "Notification cleanup Lambda function logs"
+  }
+}
+
+
+# ---------------------------------------------------------------------------
 # CloudWatch Metric Alarms
 # ---------------------------------------------------------------------------
 

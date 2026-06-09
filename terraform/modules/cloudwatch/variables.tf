@@ -55,3 +55,9 @@ variable "log_retention_days_init" {
   type        = number
   default     = 14
 }
+
+variable "log_retention_days_lambda" {
+  description = "Retention in days for Lambda function log groups"
+  type        = number
+  default     = 30
+}

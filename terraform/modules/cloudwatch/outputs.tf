@@ -22,3 +22,15 @@ output "dashboard_name" {
   description = "Name of the CareSync CloudWatch dashboard"
   value       = aws_cloudwatch_dashboard.caresync.dashboard_name
 }
+
+# Lambda log group outputs — consumed by the lambda module
+output "lambda_reminder_log_group_name" {
+  description = "Name of the appointment reminder Lambda log group"
+  value       = aws_cloudwatch_log_group.lambda_reminder.name
+}
+
+output "lambda_cleanup_log_group_name" {
+  description = "Name of the notification cleanup Lambda log group"
+  value       = aws_cloudwatch_log_group.lambda_cleanup.name
+}
+

@@ -38,3 +38,18 @@ variable "db_password" {
   sensitive   = true
   # Set via: terraform.tfvars or  export TF_VAR_db_password='...'
 }
+
+# ---------------------------------------------------------------------------
+# Phase 3 (SNS + Lambda) variables
+# ---------------------------------------------------------------------------
+
+variable "alert_email" {
+  description = "Email address for CloudWatch alarm SNS notifications — populated from terraform.tfvars"
+  type        = string
+}
+
+variable "notification_retention_days" {
+  description = "Cleanup Lambda: delete notifications older than this many days"
+  type        = number
+  default     = 30
+}

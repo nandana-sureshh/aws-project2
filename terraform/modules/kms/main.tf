@@ -77,6 +77,22 @@ resource "aws_kms_key" "caresync" {
             "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:*"
           }
         }
+      },
+      {
+        # Allow SNS service to use this key for topic encryption.
+        # Required so the SNS topic can use the project CMK for server-side
+        # encryption of messages at rest. Scoped to SNS service principal only.
+        Sid    = "AllowSNSEncryption"
+        Effect = "Allow"
+        Principal = {
+          Service = "sns.amazonaws.com"
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
       }
     ]
   })

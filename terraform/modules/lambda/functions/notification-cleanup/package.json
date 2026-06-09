@@ -1,0 +1,10 @@
+{
+  "name": "notification-cleanup",
+  "version": "1.0.0",
+  "description": "CareSync notification cleanup Lambda — deletes old notifications from RDS",
+  "type": "module",
+  "main": "index.mjs",
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

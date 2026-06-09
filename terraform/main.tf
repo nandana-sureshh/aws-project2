@@ -177,6 +177,60 @@ module "cloudwatch" {
   external_alb_arn_suffix = module.alb.external_alb_arn_suffix
   backend_tg_arn_suffix   = module.alb.backend_tg_arn_suffix
 
-  # Phase 1: no alarm actions — SNS ARN will be wired in Phase 2
-  alarm_actions = []
+  # Phase 2: CloudWatch alarms now deliver to SNS
+  alarm_actions = [module.sns.topic_arn]
+}
+
+# ===========================================================================
+# PHASE 4 MODULES — SNS
+# ===========================================================================
+
+module "sns" {
+  source = "./modules/sns"
+
+  project_name = var.project_name
+  environment  = var.environment
+  kms_key_arn  = module.kms.kms_key_arn
+  alert_email  = var.alert_email
+}
+
+# ===========================================================================
+# PHASE 5 MODULES — Lambda + EventBridge Scheduler
+# ===========================================================================
+
+module "lambda" {
+  source = "./modules/lambda"
+
+  project_name   = var.project_name
+  environment    = var.environment
+  aws_region     = var.aws_region
+  aws_account_id = var.aws_account_id
+
+  # Networking — Lambda runs in backend private subnets (same as EC2)
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.backend_subnet_ids
+  backend_sg_id      = module.security_groups.backend_sg_id
+  database_sg_id     = module.security_groups.database_sg_id
+
+  # Secrets / KMS — reuse existing project secret and CMK
+  secret_arn  = module.secrets_manager.secret_arn
+  secret_name = module.secrets_manager.secret_name
+  kms_key_arn = module.kms.kms_key_arn
+
+  # SNS — reminder Lambda publishes here
+  sns_topic_arn = module.sns.topic_arn
+
+  # CloudWatch log groups — pre-created by cloudwatch module (KMS-encrypted)
+  reminder_log_group_name = module.cloudwatch.lambda_reminder_log_group_name
+  cleanup_log_group_name  = module.cloudwatch.lambda_cleanup_log_group_name
+
+  # Business logic configuration
+  reminder_window_hours       = 24
+  notification_retention_days = var.notification_retention_days
+
+  # Scheduling (UTC) — EventBridge Scheduler cron expressions
+  reminder_schedule = "cron(0 8 * * ? *)"   # 08:00 UTC daily
+  cleanup_schedule  = "cron(0 2 * * ? *)"   # 02:00 UTC daily
+
+  depends_on = [module.cloudwatch]
 }

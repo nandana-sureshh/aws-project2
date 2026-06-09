@@ -91,3 +91,32 @@ output "cloudwatch_dashboard_name" {
   description = "CloudWatch dashboard name"
   value       = module.cloudwatch.dashboard_name
 }
+
+# --- SNS ---
+
+output "sns_topic_arn" {
+  description = "SNS alerts topic ARN — CloudWatch alarms and appointment reminders publish here"
+  value       = module.sns.topic_arn
+}
+
+output "sns_topic_name" {
+  description = "SNS alerts topic name"
+  value       = module.sns.topic_name
+}
+
+# --- Lambda ---
+
+output "lambda_reminder_name" {
+  description = "Appointment reminder Lambda function name"
+  value       = module.lambda.reminder_lambda_name
+}
+
+output "lambda_cleanup_name" {
+  description = "Notification cleanup Lambda function name"
+  value       = module.lambda.cleanup_lambda_name
+}
+
+output "lambda_security_group_id" {
+  description = "Security group ID attached to both Lambda functions"
+  value       = module.lambda.lambda_security_group_id
+}
