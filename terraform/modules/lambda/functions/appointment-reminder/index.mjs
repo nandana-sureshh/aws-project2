@@ -30,13 +30,13 @@ import pg from 'pg';
 const { Client } = pg;
 
 // ---- Configuration (all from environment, none hardcoded) ----
-const REGION              = process.env.AWS_REGION;
-const SECRET_NAME         = process.env.SECRET_NAME;
-const SNS_TOPIC_ARN       = process.env.SNS_TOPIC_ARN;
-const REMINDER_HOURS      = parseInt(process.env.REMINDER_WINDOW_HOURS ?? '24', 10);
+const REGION = process.env.AWS_REGION;
+const SECRET_NAME = process.env.SECRET_NAME;
+const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
+const REMINDER_HOURS = parseInt(process.env.REMINDER_WINDOW_HOURS ?? '24', 10);
 
 // ---- AWS SDK clients (region from Lambda env, credentials from execution role) ----
-const smClient  = new SecretsManagerClient({ region: REGION });
+const smClient = new SecretsManagerClient({ region: REGION });
 const snsClient = new SNSClient({ region: REGION });
 
 /**
@@ -64,7 +64,7 @@ async function getDatabaseUrl() {
  * 'appointment_reminder' in the metadata.
  */
 async function getUpcomingAppointments(client) {
-  const now      = new Date();
+  const now = new Date();
   const windowEnd = new Date(now.getTime() + REMINDER_HOURS * 60 * 60 * 1000);
 
   const query = `
@@ -116,10 +116,10 @@ async function insertReminderNotification(client, appointment) {
   });
 
   const metadata = JSON.stringify({
-    reminder_for:   appointment.appointment_id,
-    scheduled_at:   appointment.scheduledAt,
-    doctor_name:    `Dr. ${appointment.doctor_first} ${appointment.doctor_last}`,
-    source:         'appointment-reminder-lambda',
+    reminder_for: appointment.appointment_id,
+    scheduled_at: appointment.scheduledAt,
+    doctor_name: `Dr. ${appointment.doctor_first} ${appointment.doctor_last}`,
+    source: 'appointment-reminder-lambda',
   });
 
   await client.query(
@@ -163,8 +163,8 @@ async function publishSNSReminder(appointment) {
 
   await snsClient.send(new PublishCommand({
     TopicArn: SNS_TOPIC_ARN,
-    Subject:  subject,
-    Message:  message,
+    Subject: subject,
+    Message: message,
   }));
 }
 
@@ -183,7 +183,7 @@ export const handler = async (event) => {
 
   try {
     const databaseUrl = await getDatabaseUrl();
-    dbClient = new Client({ 
+    dbClient = new Client({
       connectionString: databaseUrl,
       ssl: { rejectUnauthorized: false }
     });

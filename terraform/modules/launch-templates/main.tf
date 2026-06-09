@@ -21,9 +21,6 @@ data "aws_ami" "ubuntu" {
 # Runs on separate EC2 instances in frontend private subnets.
 # Clones repo, builds the React app inside Docker, starts Nginx.
 # Uses docker-compose.frontend.yml (no backend dependency).
-#
-# VITE_API_URL is empty ("") — React SPA uses relative /api/* paths.
-# External ALB listener rule routes /api/* to the backend target group.
 # ===========================================================================
 
 locals {

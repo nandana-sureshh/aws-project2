@@ -9,11 +9,6 @@
 #   "JWT_SECRET": "min-32-char-random-string",
 #   "JWT_REFRESH_SECRET": "min-32-char-random-string"
 # }
-#
-# Quick CLI command to populate after apply:
-#   aws secretsmanager put-secret-value \
-#     --secret-id caresync-dev-app-secrets \
-#     --secret-string '{"DATABASE_URL":"...","JWT_SECRET":"...","JWT_REFRESH_SECRET":"..."}'
 
 resource "aws_secretsmanager_secret" "app" {
   name        = "${var.project_name}-${var.environment}-app-secrets"

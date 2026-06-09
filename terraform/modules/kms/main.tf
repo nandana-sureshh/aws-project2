@@ -4,8 +4,7 @@
 #   1. Root account — full control (prevents lock-out)
 #   2. AWS services (secretsmanager, rds) via service principal — service-side encryption
 #
-# NOTE: EC2 IAM role access to KMS is granted via the IAM role policy
-#       (modules/iam), NOT here. That keeps this key policy minimal.
+# NOTE: EC2 IAM role access to KMS is granted via the IAM role policy (modules/iam).
 
 resource "aws_kms_key" "caresync" {
   description             = "${var.project_name} ${var.environment} Customer Managed Key"

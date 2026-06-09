@@ -1,21 +1,5 @@
 # ===========================================================================
 # CareSync Lambda Module
-#
-# Creates:
-#   1. Lambda Security Group (egress: RDS 5432, HTTPS 443 for Secrets Manager/SNS)
-#   2. Security Group Rule — allow Lambda SG to connect to RDS SG on port 5432
-#   3. IAM Execution Role for appointment-reminder Lambda (least-privilege)
-#   4. IAM Execution Role for notification-cleanup Lambda (least-privilege)
-#   5. Lambda: appointment-reminder (Node.js 20, VPC, EventBridge Scheduler)
-#   6. Lambda: notification-cleanup (Node.js 20, VPC, EventBridge Scheduler)
-#   7. EventBridge Scheduler IAM Role (to invoke Lambda functions)
-#   8. EventBridge Scheduler: appointment-reminder (daily 08:00 UTC)
-#   9. EventBridge Scheduler: notification-cleanup  (daily 02:00 UTC)
-#
-# Lambda deployment packages:
-#   - Built from local source in functions/<name>/ directories
-#   - Terraform data.archive_file zips index.mjs + node_modules
-#   - New zip is deployed only when source content changes (via source_content_hash)
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
@@ -69,12 +53,6 @@ resource "aws_security_group_rule" "lambda_to_rds" {
 # ---------------------------------------------------------------------------
 # IAM: Appointment Reminder Lambda Execution Role
 # Permissions (all resource-scoped, no wildcards):
-#   - secretsmanager:GetSecretValue → project app secret only
-#   - kms:Decrypt, kms:DescribeKey  → project CMK only (for secret decryption)
-#   - sns:Publish                   → project alerts topic only
-#   - logs:CreateLogStream, logs:PutLogEvents → reminder log group only
-#   - ec2:CreateNetworkInterface, ec2:DeleteNetworkInterface,
-#     ec2:DescribeNetworkInterfaces → required for VPC-attached Lambda
 # ---------------------------------------------------------------------------
 
 resource "aws_iam_role" "reminder_lambda" {
@@ -433,8 +411,6 @@ resource "aws_iam_role_policy" "scheduler_invoke" {
 # ---------------------------------------------------------------------------
 # EventBridge Scheduler Schedules
 # Using EventBridge Scheduler (not EventBridge Rules) as required.
-# schedule_expression uses cron() in UTC.
-# flexible_time_window = OFF for exact execution.
 # ---------------------------------------------------------------------------
 
 resource "aws_scheduler_schedule" "appointment_reminder" {

@@ -7,14 +7,6 @@
 # Cache behaviors:
 #   /api/*  (ordered, priority 0) — CachingDisabled, all methods forwarded
 #   /*      (default)             — CachingOptimized, GET/HEAD only
-#
-# SPA routing note:
-#   CloudFront custom error responses (403/404 → /index.html) are intentionally
-#   NOT configured. The frontend nginx already handles SPA routing via:
-#     try_files $uri $uri/ /index.html;
-#   returning HTTP 200 for all client-side routes. Adding custom error responses
-#   would mask genuine API 404s (e.g. GET /api/appointments/999) and break
-#   frontend error handling.
 # ===========================================================================
 
 resource "aws_cloudfront_distribution" "main" {
@@ -72,13 +64,6 @@ resource "aws_cloudfront_distribution" "main" {
 
   # ---------------------------------------------------------------------------
   # Default cache behavior: /* — frontend static assets
-  #
-  # AWS managed policy IDs (global, not created by Terraform):
-  #   CachingOptimized : 658327ea-f89d-4fab-a63d-7e88639e58f6
-  #   AllViewer        : 216adef6-5c7f-47e4-b989-5492eafa07d3
-  #
-  # Note: AllViewer forwards the Host header so the ALB can route correctly.
-  # Vite builds JS/CSS with content-hash filenames so aggressive caching is safe.
   # ---------------------------------------------------------------------------
   default_cache_behavior {
     target_origin_id = "ExternalALB"

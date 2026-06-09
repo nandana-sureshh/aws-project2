@@ -9,8 +9,6 @@
 # Log shipping is handled externally:
 #   - /backend/app  → Docker awslogs driver in docker-compose.backend.yml
 #   - /backend/init → CloudWatch Agent configured in EC2 user data
-#
-# alarm_actions = [] in Phase 1; SNS ARN wired in Phase 2.
 # ===========================================================================
 
 # ---------------------------------------------------------------------------

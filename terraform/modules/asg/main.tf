@@ -1,8 +1,4 @@
-# ===========================================================================
 # FRONTEND AUTO SCALING GROUP
-# min=1, desired=1, max=2 — frontend private subnets
-# health_check_grace_period=600 allows 10 min for Docker bootstrap
-# ===========================================================================
 
 resource "aws_autoscaling_group" "frontend" {
   name = "${var.project_name}-${var.environment}-frontend-asg"
@@ -63,11 +59,7 @@ resource "aws_autoscaling_group" "frontend" {
   }
 }
 
-# ===========================================================================
 # BACKEND AUTO SCALING GROUP
-# min=1, desired=1, max=2 — backend private subnets
-# health_check_grace_period=600 allows time for Docker + Secrets Manager init
-# ===========================================================================
 
 resource "aws_autoscaling_group" "backend" {
   name = "${var.project_name}-${var.environment}-backend-asg"
