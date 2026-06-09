@@ -95,7 +95,7 @@ variable "notification_retention_days" {
 variable "reminder_schedule" {
   description = "EventBridge Scheduler cron expression for appointment reminders (UTC)"
   type        = string
-  default     = "cron(0 8 * * ? *)"  # 08:00 UTC daily
+  default     = "rate(1 hour)"       # Hourly execution
 }
 
 variable "cleanup_schedule" {

@@ -139,19 +139,23 @@ resource "aws_security_group" "database" {
   name        = "${var.project_name}-database-sg"
   description = "Database Security Group"
   vpc_id      = var.vpc_id
+}
 
-  ingress {
-    description     = "PostgreSQL from Backend"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.backend.id]
-  }
+resource "aws_security_group_rule" "database_ingress_backend" {
+  type                     = "ingress"
+  description              = "PostgreSQL from Backend"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.database.id
+  source_security_group_id = aws_security_group.backend.id
+}
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_security_group_rule" "database_egress_all" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.database.id
 }

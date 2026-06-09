@@ -229,7 +229,7 @@ module "lambda" {
   notification_retention_days = var.notification_retention_days
 
   # Scheduling (UTC) — EventBridge Scheduler cron expressions
-  reminder_schedule = "cron(0 8 * * ? *)"   # 08:00 UTC daily
+  reminder_schedule = "rate(1 hour)"        # Hourly execution
   cleanup_schedule  = "cron(0 2 * * ? *)"   # 02:00 UTC daily
 
   depends_on = [module.cloudwatch]
