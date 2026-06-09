@@ -22,3 +22,13 @@ variable "kms_key_arn" {
   description = "ARN of the KMS CMK (used by Secrets Manager and S3)"
   type        = string
 }
+
+variable "aws_account_id" {
+  description = "AWS Account ID — used to construct CloudWatch Log Group ARNs"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region — used to construct CloudWatch Log Group ARNs"
+  type        = string
+}

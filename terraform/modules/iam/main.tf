@@ -105,6 +105,41 @@ resource "aws_iam_role_policy" "kms_access" {
   })
 }
 
+# --- CloudWatch Logs: write to backend log groups from EC2 instance ---
+#
+# Used by two shipping mechanisms:
+#   1. Docker awslogs driver  → /backend/app  log group
+#   2. CloudWatch Agent       → /backend/init log group
+#
+# Resource is scoped to the two specific log group ARNs — no wildcards.
+# The trailing :* is required to allow CreateLogStream and PutLogEvents
+# on log streams within those groups.
+
+resource "aws_iam_role_policy" "cloudwatch_logs_access" {
+  name = "${var.project_name}-${var.environment}-cw-logs-access"
+  role = aws_iam_role.backend.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "WriteBackendLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups"
+        ]
+        Resource = [
+          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/${var.project_name}/${var.environment}/backend/app:*",
+          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/${var.project_name}/${var.environment}/backend/init:*"
+        ]
+      }
+    ]
+  })
+}
+
 # --- Instance Profile (wraps role for EC2 use) ---
 
 resource "aws_iam_instance_profile" "backend" {

@@ -74,3 +74,20 @@ output "backend_asg_name" {
   description = "Backend Auto Scaling Group name"
   value       = module.asg.backend_asg_name
 }
+
+# --- CloudWatch ---
+
+output "cloudwatch_backend_app_log_group" {
+  description = "CloudWatch log group for backend container stdout/stderr (Docker awslogs driver)"
+  value       = module.cloudwatch.backend_app_log_group_name
+}
+
+output "cloudwatch_backend_init_log_group" {
+  description = "CloudWatch log group for EC2 bootstrap init log (CloudWatch Agent)"
+  value       = module.cloudwatch.backend_init_log_group_name
+}
+
+output "cloudwatch_dashboard_name" {
+  description = "CloudWatch dashboard name"
+  value       = module.cloudwatch.dashboard_name
+}

@@ -53,6 +53,30 @@ resource "aws_kms_key" "caresync" {
           "kms:DescribeKey"
         ]
         Resource = "*"
+      },
+      {
+        # Allow CloudWatch Logs to use this key for log group encryption.
+        # The kms:EncryptionContext condition scopes permission strictly to
+        # CloudWatch log resources in this AWS account — satisfies least-privilege
+        # even though Resource = "*" is required for key policy statements.
+        Sid    = "AllowCloudWatchLogsEncryption"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${var.aws_region}.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+        Condition = {
+          ArnLike = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:*"
+          }
+        }
       }
     ]
   })

@@ -23,3 +23,8 @@ output "db_username" {
   value       = aws_db_instance.postgres.username
   sensitive   = true
 }
+
+output "db_identifier" {
+  description = "RDS instance identifier — used as CloudWatch alarm dimension"
+  value       = aws_db_instance.postgres.identifier
+}

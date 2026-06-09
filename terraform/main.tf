@@ -75,6 +75,7 @@ module "kms" {
   project_name   = var.project_name
   environment    = var.environment
   aws_account_id = var.aws_account_id
+  aws_region     = var.aws_region
 }
 
 module "secrets_manager" {
@@ -96,11 +97,13 @@ module "s3" {
 module "iam" {
   source = "./modules/iam"
 
-  project_name  = var.project_name
-  environment   = var.environment
-  secret_arn    = module.secrets_manager.secret_arn
-  s3_bucket_arn = module.s3.bucket_arn
-  kms_key_arn   = module.kms.kms_key_arn
+  project_name   = var.project_name
+  environment    = var.environment
+  aws_account_id = var.aws_account_id
+  aws_region     = var.aws_region
+  secret_arn     = module.secrets_manager.secret_arn
+  s3_bucket_arn  = module.s3.bucket_arn
+  kms_key_arn    = module.kms.kms_key_arn
 }
 
 module "rds" {
@@ -154,4 +157,26 @@ module "asg" {
   # Backend TG is External ALB, Internal Backend TG is Internal ALB
   backend_target_group_arn          = module.alb.backend_target_group_arn
   internal_backend_target_group_arn = module.alb.internal_backend_target_group_arn
+}
+
+# ===========================================================================
+# PHASE 3 MODULES — CloudWatch Observability
+# ===========================================================================
+
+module "cloudwatch" {
+  source = "./modules/cloudwatch"
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+  kms_key_arn  = module.kms.kms_key_arn
+
+  # Alarm dimensions
+  backend_asg_name        = module.asg.backend_asg_name
+  rds_identifier          = module.rds.db_identifier
+  external_alb_arn_suffix = module.alb.external_alb_arn_suffix
+  backend_tg_arn_suffix   = module.alb.backend_tg_arn_suffix
+
+  # Phase 1: no alarm actions — SNS ARN will be wired in Phase 2
+  alarm_actions = []
 }

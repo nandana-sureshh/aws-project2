@@ -184,6 +184,49 @@ unzip -q /tmp/awscliv2.zip -d /tmp/
 /tmp/aws/install
 rm -rf /tmp/awscliv2.zip /tmp/aws/
 
+# ---- Install CloudWatch Agent ----
+# Used to ship /var/log/caresync-backend-init.log → CloudWatch Log Group.
+# Only this specific file is collected — no syslog, auth.log, or system logs.
+curl -fsSL "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb" \
+  -o /tmp/amazon-cloudwatch-agent.deb
+dpkg -i /tmp/amazon-cloudwatch-agent.deb
+rm -f /tmp/amazon-cloudwatch-agent.deb
+
+# Write CloudWatch Agent config.
+# Log group name and region come from Terraform interpolation — not hardcoded.
+CW_LOG_GROUP_INIT="/${var.project_name}/${var.environment}/backend/init"
+CW_REGION="${var.aws_region}"
+
+mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<CWCONFIG
+{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/caresync-backend-init.log",
+            "log_group_name": "$CW_LOG_GROUP_INIT",
+            "log_stream_name": "{instance_id}",
+            "timezone": "UTC",
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S"
+          }
+        ]
+      }
+    }
+  }
+}
+CWCONFIG
+
+# Start the CloudWatch Agent with the config above
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
+  -s
+
+echo "CloudWatch Agent started. Shipping: /var/log/caresync-backend-init.log → $CW_LOG_GROUP_INIT"
+
 # ---- Clone or update repository (with retries) ----
 APP_DIR="/opt/caresync"
 
@@ -209,8 +252,15 @@ done
 
 [ -d "$APP_DIR/.git" ] || { echo "FATAL: repository not available after 5 attempts"; exit 1; }
 
+# ---- Fetch EC2 Instance ID ----
+# Used to ensure Docker container log streams are unique per EC2 instance.
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+EC2_INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+
 # ---- Write backend environment file ----
 # No secrets here — the application reads them from Secrets Manager at startup.
+# CLOUDWATCH_LOG_GROUP_APP and AWS_REGION are needed by docker-compose.backend.yml
+# for Docker Compose YAML variable substitution (awslogs driver logging block).
 # Use printf to avoid any leading whitespace issues.
 printf '%s\n' \
   "NODE_ENV=production" \
@@ -219,6 +269,9 @@ printf '%s\n' \
   "AWS_REGION=${var.aws_region}" \
   "AWS_SECRETS_MANAGER_SECRET_NAME=${var.secret_name}" \
   "S3_BUCKET_NAME=${var.s3_bucket_name}" \
+  "CLOUDWATCH_LOG_GROUP_APP=/${var.project_name}/${var.environment}/backend/app" \
+  "CLOUDWATCH_LOG_GROUP_INIT=/${var.project_name}/${var.environment}/backend/init" \
+  "EC2_INSTANCE_ID=$EC2_INSTANCE_ID" \
   "STORAGE_PROVIDER=s3" \
   "NOTIFICATION_PROVIDER=database" \
   "EVENT_PROVIDER=console" \
@@ -232,10 +285,12 @@ printf '%s\n' \
   > "$APP_DIR/.env.aws"
 
 # ---- Start backend container ----
+# --env-file passes .env.aws variables to Docker Compose YAML substitution
+# so $${AWS_REGION} and $${CLOUDWATCH_LOG_GROUP_APP} in the logging block resolve correctly.
 echo "Starting backend..."
 cd "$APP_DIR"
 for attempt in 1 2 3; do
-  docker compose -f docker-compose.backend.yml up -d --build && break || {
+  docker compose --env-file "$APP_DIR/.env.aws" -f docker-compose.backend.yml up -d --build && break || {
     echo "docker compose attempt $attempt failed. Waiting 30s..."
     sleep 30
   }

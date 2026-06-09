@@ -26,6 +26,25 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    # ---------------------------------------------------------------------------
+    # Log shipping: Docker awslogs driver → CloudWatch Log Group
+    #
+    # AWS_REGION and CLOUDWATCH_LOG_GROUP_APP are NOT hardcoded here.
+    # They are injected at runtime from the .env.aws file which is written
+    # by the EC2 Launch Template user data using Terraform-interpolated values.
+    # The launch template runs: docker compose --env-file .env.aws ...
+    # which makes these variables available for Docker Compose YAML substitution.
+    #
+    # awslogs-create-group=false  → Terraform owns the log group lifecycle.
+    # awslogs-stream              → each container gets its own named stream.
+    # ---------------------------------------------------------------------------
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "${AWS_REGION}"
+        awslogs-group: "${CLOUDWATCH_LOG_GROUP_APP}"
+        awslogs-stream: "${EC2_INSTANCE_ID}-backend-app"
+        awslogs-create-group: "false"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:3000/api/health"]
       interval: 30s
@@ -33,3 +52,4 @@ services:
       retries: 5
       # Give the app time to start: Docker build + Secrets Manager fetch + Prisma connect
       start_period: 120s
+
