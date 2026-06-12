@@ -57,7 +57,6 @@ terraform/**/*.tfstate.*
 terraform/**/crash.log
 terraform/providers/
 # terraform.tfvars contains sensitive values — NEVER commit
-terraform/terraform.tfvars
 # Terraform plan output
 terraform/plan.out
 
