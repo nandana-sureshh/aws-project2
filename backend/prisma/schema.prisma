@@ -147,6 +147,8 @@ model Document {
   size           Int
   storageKey     String   @unique
   uploadedAt     DateTime @default(now())
+  aiSummary       String?
+  aiSummaryStatus String   @default("PENDING")
 
   user          User           @relation(fields: [userId], references: [id])
   appointment   Appointment?   @relation(fields: [appointmentId], references: [id])

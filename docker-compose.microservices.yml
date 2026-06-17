@@ -125,6 +125,8 @@ services:
       STORAGE_PROVIDER: local
       UPLOADS_DIR: /app/uploads
       MAX_FILE_SIZE_MB: "10"
+      QUEUE_PROVIDER: http
+      AI_SERVICE_URL: http://ai-service:3006/internal/summarize
     volumes:
       - ms_uploads_data:/app/uploads
     depends_on:
@@ -159,6 +161,41 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3005/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - caresync-ms-net
+
+  # ─────────────────────────────────────────────────────
+  # AI Service
+  # ─────────────────────────────────────────────────────
+  ai-service:
+    build:
+      context: ./backend
+      dockerfile: services/ai-service/Dockerfile
+    container_name: caresync-ai
+    environment:
+      NODE_ENV: development
+      PORT: "3006"
+      DATABASE_URL: postgresql://caresync_user:caresync_pass@postgres:5432/caresync_db
+      JWT_SECRET: caresync-jwt-secret-local-dev-32chars!!
+      JWT_REFRESH_SECRET: caresync-refresh-secret-local-32chars!!
+      CORS_ORIGIN: "*"
+      STORAGE_PROVIDER: local
+      UPLOADS_DIR: /app/uploads
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-amazon.nova-lite-v1:0}
+    volumes:
+      - ms_uploads_data:/app/uploads
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3006/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5

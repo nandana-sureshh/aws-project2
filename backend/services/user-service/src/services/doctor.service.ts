@@ -87,7 +87,27 @@ export async function getDoctorAppointments(userId: string, query: { page?: stri
       where,
       include: {
         patient: {
-          include: { user: { select: { firstName: true, lastName: true, email: true } } },
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+                documents: {
+                  select: {
+                    id: true,
+                    originalName: true,
+                    mimeType: true,
+                    size: true,
+                    uploadedAt: true,
+                    aiSummary: true,
+                    aiSummaryStatus: true
+                  },
+                  orderBy: { uploadedAt: 'desc' }
+                }
+              }
+            }
+          }
         },
         medicalRecord: true,
       },

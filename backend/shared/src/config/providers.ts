@@ -9,6 +9,7 @@ import { S3StorageProvider } from '../providers/implementations/S3StorageProvide
 import { DatabaseNotificationProvider } from '../providers/implementations/DatabaseNotificationProvider';
 import { ConsoleEventProvider } from '../providers/implementations/ConsoleEventProvider';
 import { LocalQueueProvider } from '../providers/implementations/LocalQueueProvider';
+import { HttpMockQueueProvider } from '../providers/implementations/HttpMockQueueProvider';
 
 /**
  * Provider Registry — AWS Migration Point
@@ -55,6 +56,13 @@ export function createEventProvider(): EventProvider {
 }
 
 export function createQueueProvider(): QueueProvider {
+  const provider = process.env.QUEUE_PROVIDER ?? 'local';
+  if (provider === 'http') {
+    const aiServiceUrl = process.env.AI_SERVICE_URL ?? 'http://ai-service:3006/internal/summarize';
+    return new HttpMockQueueProvider({
+      'ai-summary': aiServiceUrl,
+    });
+  }
   return new LocalQueueProvider();
   // Future: return new SQSQueueProvider(process.env.SQS_QUEUE_URL!);
 }

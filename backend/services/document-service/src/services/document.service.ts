@@ -5,6 +5,7 @@ import {
   NotificationProvider,
   parsePagination,
   createAuditLog,
+  createQueueProvider,
 } from '@caresync/shared';
 
 export async function uploadDocument(
@@ -48,6 +49,25 @@ export async function uploadDocument(
     resourceId: document.id,
     details: { filename: file.originalname, size: file.size },
   });
+
+  // Trigger AI summarization mock queue dispatch
+  const queueProvider = createQueueProvider();
+  if (document.mimeType === 'application/pdf' || document.mimeType === 'text/plain') {
+    queueProvider.enqueue('ai-summary', { documentId: document.id }).catch((err) => {
+      console.error('[document-service] Failed to enqueue AI summarization task:', err);
+    });
+  } else {
+    // Unsupported formats are marked FAILED immediately with a message
+    await prisma.document.update({
+      where: { id: document.id },
+      data: {
+        aiSummaryStatus: 'FAILED',
+        aiSummary: 'AI summary is only supported for PDF and text reports.',
+      },
+    }).catch((err) => {
+      console.error('[document-service] Failed to update unsupported document summary status:', err);
+    });
+  }
 
   return { ...document, url: uploaded.url };
 }

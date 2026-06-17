@@ -73,6 +73,8 @@ export interface Document {
   storageKey: string;
   uploadedAt: string;
   url?: string;
+  aiSummary?: string;
+  aiSummaryStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 }
 
 export interface Notification {

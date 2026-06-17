@@ -1,10 +1,23 @@
 import { useState, useEffect } from 'react';
-import { ClipboardList, Plus, X } from 'lucide-react';
+import { ClipboardList, Plus, X, Sparkles, Download, ChevronDown, ChevronUp, FileText, Image, File } from 'lucide-react';
 import { doctorsApi } from '../../api/doctors';
 import { recordsApi } from '../../api/records';
-import { Appointment, MedicalRecord } from '../../types';
+import { Appointment, MedicalRecord, Document } from '../../types';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+import { documentsApi } from '../../api/documents';
+
+function FileIcon({ mimeType }: { mimeType: string }) {
+  if (mimeType.startsWith('image/')) return <Image size={18} className="text-emerald-400" />;
+  if (mimeType === 'application/pdf') return <FileText size={18} className="text-red-400" />;
+  return <File size={18} className="text-blue-400" />;
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function DoctorRecords() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -12,6 +25,7 @@ export default function DoctorRecords() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<string>('');
+  const [expandedDocs, setExpandedDocs] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState<Partial<MedicalRecord>>({
     diagnosis: '',
     notes: '',
@@ -46,6 +60,18 @@ export default function DoctorRecords() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDownload = async (doc: Document) => {
+    try {
+      await documentsApi.download(doc.id, doc.originalName);
+    } catch {
+      toast.error('Download failed');
+    }
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedDocs((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const apptWithoutRecord = appointments.filter((a) => !a.medicalRecord);
@@ -90,6 +116,79 @@ export default function DoctorRecords() {
                   </p>
                 </div>
               </div>
+
+              {/* Patient Uploaded Reports Section */}
+              {(appt.patient?.user as any)?.documents && (appt.patient?.user as any).documents.length > 0 && (
+                <div className="mb-5 border-t border-slate-700/30 pt-4">
+                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
+                    📁 Patient Uploaded Reports
+                  </p>
+                  <div className="space-y-2.5">
+                    {(appt.patient?.user as any)?.documents?.map((doc: Document) => (
+                      <div key={doc.id} className="bg-slate-900/40 rounded-xl p-3 border border-slate-800/80 flex flex-col gap-2.5">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
+                              <FileIcon mimeType={doc.mimeType} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-slate-200 text-sm font-medium truncate">{doc.originalName}</p>
+                              <p className="text-slate-500 text-[11px]">
+                                {formatSize(doc.size)} • {format(new Date(doc.uploadedAt), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {(doc.mimeType === 'application/pdf' || doc.mimeType === 'text/plain') && (
+                              <button
+                                onClick={() => toggleExpand(doc.id)}
+                                className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[11px] font-medium ${
+                                  expandedDocs[doc.id]
+                                    ? 'bg-primary-500/20 text-primary-400'
+                                    : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                <Sparkles size={13} className={doc.aiSummaryStatus === 'PROCESSING' ? 'animate-pulse text-primary-400' : ''} />
+                                <span>AI Summary</span>
+                                {expandedDocs[doc.id] ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDownload(doc)}
+                              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all"
+                              title="Download Report"
+                            >
+                              <Download size={13} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Summary Display */}
+                        {expandedDocs[doc.id] && (
+                          <div className="mt-1 pl-1 border-l-2 border-primary-500/30">
+                            <div className="bg-slate-950/40 rounded-lg p-3 border border-slate-700/20 text-xs text-slate-300 leading-relaxed whitespace-pre-line">
+                              <div className="flex items-center gap-1.5 text-primary-400 font-semibold uppercase tracking-wider text-[10px] mb-2">
+                                <Sparkles size={11} />
+                                <span>AI Analysis summary</span>
+                              </div>
+                              {doc.aiSummaryStatus === 'PROCESSING' || doc.aiSummaryStatus === 'PENDING' ? (
+                                <div className="flex items-center gap-2 py-1 text-slate-400">
+                                  <div className="w-3.5 h-3.5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                                  <span>Generating summary...</span>
+                                </div>
+                              ) : (
+                                doc.aiSummary
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {appt.medicalRecord && (
                 <div className="grid md:grid-cols-2 gap-4">
                   {[

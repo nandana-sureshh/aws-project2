@@ -61,3 +61,4 @@ export { S3StorageProvider } from './providers/implementations/S3StorageProvider
 export { DatabaseNotificationProvider } from './providers/implementations/DatabaseNotificationProvider';
 export { ConsoleEventProvider } from './providers/implementations/ConsoleEventProvider';
 export { LocalQueueProvider } from './providers/implementations/LocalQueueProvider';
+export { HttpMockQueueProvider } from './providers/implementations/HttpMockQueueProvider';
