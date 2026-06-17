@@ -177,18 +177,19 @@ services:
       dockerfile: services/ai-service/Dockerfile
     container_name: caresync-ai
     environment:
-      NODE_ENV: development
-      PORT: "3006"
-      DATABASE_URL: postgresql://caresync_user:caresync_pass@postgres:5432/caresync_db
-      JWT_SECRET: caresync-jwt-secret-local-dev-32chars!!
-      JWT_REFRESH_SECRET: caresync-refresh-secret-local-32chars!!
-      CORS_ORIGIN: "*"
-      STORAGE_PROVIDER: local
-      UPLOADS_DIR: /app/uploads
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-amazon.nova-lite-v1:0}
+      - NODE_ENV=development
+      - PORT=3006
+      - DATABASE_URL=postgresql://caresync_user:caresync_pass@postgres:5432/caresync_db
+      - JWT_SECRET=caresync-jwt-secret-local-dev-32chars!!
+      - JWT_REFRESH_SECRET=caresync-refresh-secret-local-32chars!!
+      - CORS_ORIGIN=*
+      - STORAGE_PROVIDER=local
+      - UPLOADS_DIR=/app/uploads
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-amazon.nova-lite-v1:0}
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
     volumes:
       - ms_uploads_data:/app/uploads
     depends_on:
