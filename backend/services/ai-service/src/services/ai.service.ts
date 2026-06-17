@@ -1,3 +1,4 @@
+/// <reference path="../types/pdf-parse.d.ts" />
 import { prisma, createStorageProvider } from '@caresync/shared';
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import pdf from 'pdf-parse';
