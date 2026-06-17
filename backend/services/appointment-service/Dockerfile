@@ -15,7 +15,7 @@ COPY services/appointment-service/package.json ./services/appointment-service/
 COPY prisma ./prisma/
 
 RUN npm install
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 RUN npm run build --workspace=shared
 
 COPY services/appointment-service/tsconfig.json ./services/appointment-service/
@@ -34,7 +34,7 @@ COPY services/appointment-service/package.json ./services/appointment-service/
 COPY prisma ./prisma/
 
 RUN npm install --omit=dev
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
 COPY --from=builder /workspace/shared/dist ./shared/dist
 COPY --from=builder /workspace/services/appointment-service/dist ./services/appointment-service/dist

@@ -26,7 +26,7 @@ COPY prisma ./prisma/
 RUN npm install
 
 # Generate Prisma client
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
 # Build shared package
 RUN npm run build --workspace=shared
@@ -52,7 +52,7 @@ COPY prisma ./prisma/
 RUN npm install --omit=dev
 
 # Generate Prisma client in production image
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
 # Copy compiled output
 COPY --from=builder /workspace/shared/dist ./shared/dist

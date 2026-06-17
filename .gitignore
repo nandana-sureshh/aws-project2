@@ -7,6 +7,17 @@ node_modules/
 dist/
 build/
 .next/
+**/dist/
+backend/shared/dist/
+backend/services/*/dist/
+
+# Compiled JS output from TypeScript (should only be in dist/)
+backend/shared/src/**/*.js
+backend/shared/src/**/*.js.map
+backend/shared/src/**/*.d.ts
+backend/services/*/src/**/*.js
+backend/services/*/src/**/*.js.map
+backend/services/*/src/**/*.d.ts
 
 # Environment files
 .env

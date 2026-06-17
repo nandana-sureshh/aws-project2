@@ -15,7 +15,7 @@ COPY services/document-service/package.json ./services/document-service/
 COPY prisma ./prisma/
 
 RUN npm install
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 RUN npm run build --workspace=shared
 
 COPY services/document-service/tsconfig.json ./services/document-service/
@@ -34,7 +34,7 @@ COPY services/document-service/package.json ./services/document-service/
 COPY prisma ./prisma/
 
 RUN npm install --omit=dev
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
 COPY --from=builder /workspace/shared/dist ./shared/dist
 COPY --from=builder /workspace/services/document-service/dist ./services/document-service/dist

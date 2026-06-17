@@ -15,7 +15,7 @@ COPY services/notification-service/package.json ./services/notification-service/
 COPY prisma ./prisma/
 
 RUN npm install
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 RUN npm run build --workspace=shared
 
 COPY services/notification-service/tsconfig.json ./services/notification-service/
@@ -34,7 +34,7 @@ COPY services/notification-service/package.json ./services/notification-service/
 COPY prisma ./prisma/
 
 RUN npm install --omit=dev
-RUN npx prisma generate --schema=./prisma/schema.prisma
+RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
 COPY --from=builder /workspace/shared/dist ./shared/dist
 COPY --from=builder /workspace/services/notification-service/dist ./services/notification-service/dist
