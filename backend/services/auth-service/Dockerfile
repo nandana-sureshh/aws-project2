@@ -31,6 +31,9 @@ RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 # Build shared package
 RUN npm run build --workspace=shared
 
+# Compile database seed script
+RUN npx tsc prisma/seed.ts --target es2020 --module commonjs --esModuleInterop --skipLibCheck
+
 # Copy and build auth-service
 COPY services/auth-service/tsconfig.json ./services/auth-service/
 COPY services/auth-service/src ./services/auth-service/src
@@ -57,6 +60,7 @@ RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 # Copy compiled output
 COPY --from=builder /workspace/shared/dist ./shared/dist
 COPY --from=builder /workspace/services/auth-service/dist ./services/auth-service/dist
+COPY --from=builder /workspace/prisma/seed.js ./prisma/seed.js
 
 # Copy entrypoint
 COPY services/auth-service/docker-entrypoint.sh ./docker-entrypoint.sh
