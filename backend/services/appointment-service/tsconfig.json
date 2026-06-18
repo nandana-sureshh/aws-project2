@@ -10,11 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "sourceMap": true,
-    "paths": {
-      "@caresync/shared": ["../../shared/dist"]
-    },
-    "baseUrl": "."
+    "sourceMap": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

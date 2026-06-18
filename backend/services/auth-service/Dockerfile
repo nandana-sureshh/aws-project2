@@ -1,43 +1,22 @@
-# =====================================================
-# auth-service Dockerfile
-# Build context: backend/  (REQUIRED)
-# Usage: docker build -f services/auth-service/Dockerfile .
-# =====================================================
-
+# Build context: ./backend/services/auth-service
 FROM node:20-alpine AS builder
 
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy workspace manifest
-COPY package.json ./
+COPY package*.json ./
+COPY shared/package*.json ./shared/
 
-# Copy shared package
-COPY shared/package.json ./shared/
-COPY shared/tsconfig.json ./shared/
-COPY shared/src ./shared/src
-
-# Copy service package
-COPY services/auth-service/package.json ./services/auth-service/
-
-# Copy prisma schema
-COPY prisma ./prisma/
-
-# Install all workspace dependencies
 RUN npm install
 
-# Generate Prisma client
+COPY tsconfig.json ./
+COPY src/ ./src/
+COPY prisma/ ./prisma/
+COPY shared/ ./shared/
+
 RUN npx --yes prisma generate --schema=./prisma/schema.prisma
-
-# Build shared package
-RUN npm run build --workspace=shared
-
-# Compile database seed script
+RUN npm run build --prefix shared
+RUN npm run build
 RUN npx tsc prisma/seed.ts --target es2020 --module commonjs --esModuleInterop --skipLibCheck
-
-# Copy and build auth-service
-COPY services/auth-service/tsconfig.json ./services/auth-service/
-COPY services/auth-service/src ./services/auth-service/src
-RUN npm run build --workspace=@caresync/auth-service
 
 # =====================================================
 FROM node:20-alpine AS production
@@ -46,24 +25,18 @@ WORKDIR /app
 
 RUN apk add --no-cache curl openssl
 
-# Copy workspace manifest and package files for prod install
-COPY package.json ./
-COPY shared/package.json ./shared/
-COPY services/auth-service/package.json ./services/auth-service/
-COPY prisma ./prisma/
+COPY package*.json ./
+COPY shared/package*.json ./shared/
 
 RUN npm install --omit=dev
 
-# Generate Prisma client in production image
+COPY --from=builder /app/prisma ./prisma
 RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 
-# Copy compiled output
-COPY --from=builder /workspace/shared/dist ./shared/dist
-COPY --from=builder /workspace/services/auth-service/dist ./services/auth-service/dist
-COPY --from=builder /workspace/prisma/seed.js ./prisma/seed.js
+COPY --from=builder /app/shared/dist ./shared/dist
+COPY --from=builder /app/dist ./dist
 
-# Copy entrypoint
-COPY services/auth-service/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
 EXPOSE 3001
@@ -72,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
   CMD curl -f http://localhost:3001/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["node", "services/auth-service/dist/server.js"]
+CMD ["node", "dist/server.js"]

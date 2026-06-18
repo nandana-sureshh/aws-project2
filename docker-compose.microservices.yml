@@ -29,8 +29,8 @@ services:
   # ─────────────────────────────────────────────────────
   auth-service:
     build:
-      context: ./backend
-      dockerfile: services/auth-service/Dockerfile
+      context: ./backend/services/auth-service
+      dockerfile: Dockerfile
     container_name: caresync-auth
     environment:
       NODE_ENV: development
@@ -58,8 +58,8 @@ services:
   # ─────────────────────────────────────────────────────
   user-service:
     build:
-      context: ./backend
-      dockerfile: services/user-service/Dockerfile
+      context: ./backend/services/user-service
+      dockerfile: Dockerfile
     container_name: caresync-user
     environment:
       NODE_ENV: development
@@ -85,8 +85,8 @@ services:
   # ─────────────────────────────────────────────────────
   appointment-service:
     build:
-      context: ./backend
-      dockerfile: services/appointment-service/Dockerfile
+      context: ./backend/services/appointment-service
+      dockerfile: Dockerfile
     container_name: caresync-appointment
     environment:
       NODE_ENV: development
@@ -112,8 +112,8 @@ services:
   # ─────────────────────────────────────────────────────
   document-service:
     build:
-      context: ./backend
-      dockerfile: services/document-service/Dockerfile
+      context: ./backend/services/document-service
+      dockerfile: Dockerfile
     container_name: caresync-document
     environment:
       NODE_ENV: development
@@ -146,8 +146,8 @@ services:
   # ─────────────────────────────────────────────────────
   notification-service:
     build:
-      context: ./backend
-      dockerfile: services/notification-service/Dockerfile
+      context: ./backend/services/notification-service
+      dockerfile: Dockerfile
     container_name: caresync-notification
     environment:
       NODE_ENV: development
@@ -173,8 +173,8 @@ services:
   # ─────────────────────────────────────────────────────
   ai-service:
     build:
-      context: ./backend
-      dockerfile: services/ai-service/Dockerfile
+      context: ./backend/services/ai-service
+      dockerfile: Dockerfile
     container_name: caresync-ai
     environment:
       - NODE_ENV=development

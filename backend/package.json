@@ -1,14 +1,6 @@
 {
-  "name": "caresync-backend-workspace",
+  "name": "caresync-backend",
   "private": true,
-  "workspaces": [
-    "shared",
-    "services/*"
-  ],
-  "scripts": {
-    "build:all": "npm run build --workspaces --if-present",
-    "build:shared": "npm run build --workspace=shared"
-  },
   "engines": {
     "node": ">=18.0.0"
   }
