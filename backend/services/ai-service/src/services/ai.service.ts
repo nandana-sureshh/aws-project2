@@ -113,7 +113,7 @@ ${extractedText}
           }
         ],
         inferenceConfig: {
-          maxNewTokens: 1000,
+          maxTokens: 1000,
           temperature: 0.1,
           topP: 0.9
         }
