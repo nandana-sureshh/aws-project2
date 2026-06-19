@@ -90,9 +90,14 @@ fi
 SECRET_NAME=$(cd ../terraform/environments/dev && terraform output -raw db_secret_name)
 echo "🔑 Using AWS Secret: $SECRET_NAME"
 
+# Dynamically fetch AWS Account ID for IRSA
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+echo "☁️ AWS Account ID: $AWS_ACCOUNT_ID"
+
 helm upgrade --install caresync . \
   -f values.yaml \
   --set secrets.awsSecretName="${SECRET_NAME}" \
+  --set awsAccountId="${AWS_ACCOUNT_ID}" \
   --namespace "${NAMESPACE}" \
   --create-namespace \
   --wait \

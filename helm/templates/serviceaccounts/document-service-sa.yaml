@@ -7,5 +7,5 @@ metadata:
     app: document-service
     {{- include "caresync.labels" . | nindent 4 }}
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::${AWS_ACCOUNT_ID}:role/caresync-dev-document-service-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::{{ .Values.awsAccountId }}:role/caresync-dev-document-service-role"
 automountServiceAccountToken: true
