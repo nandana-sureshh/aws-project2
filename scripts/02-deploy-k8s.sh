@@ -71,6 +71,10 @@ echo "✅ External Secrets Operator installed and ready."
 echo ""
 
 # --- Step 5: Deploy CareSync Helm Chart ---
+# Clear kubectl/helm API discovery cache to ensure it detects the new ESO CRDs
+echo "🧹 Clearing Helm/Kubectl API discovery cache..."
+rm -rf ~/.kube/cache
+
 # This deploys: Namespace, GatewayClass, Gateway, HTTPRoutes, Services,
 # Deployments, ServiceAccounts, ExternalSecrets, NetworkPolicies, HPAs.
 # KGateway detects the Gateway resource and dynamically provisions the proxy.
