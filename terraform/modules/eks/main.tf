@@ -11,6 +11,7 @@ module "eks" {
   create_node_security_group    = false
   enable_irsa = true
   cluster_endpoint_public_access = true
+  enable_cluster_creator_admin_permissions = true
   eks_managed_node_groups = {
     main = {
       ami_type       = "AL2023_x86_64_STANDARD"
