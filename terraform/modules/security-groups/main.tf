@@ -1,6 +1,12 @@
 resource "aws_security_group" "eks_cluster" {
   name   = "eks-cluster-sg"
   vpc_id = var.vpc_id
+  ingress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eks_nodes.id]
+  }
   egress {
     from_port   = 0
     to_port     = 0
