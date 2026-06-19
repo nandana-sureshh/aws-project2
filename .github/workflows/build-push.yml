@@ -1,0 +1,28 @@
+name: Build and Push to AWS ECR
+
+on:
+  push:
+    branches:
+      - microservices-migration
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run Build & Push Script
+        run: |
+          chmod +x scripts/01.5-build-push.sh
+          bash scripts/01.5-build-push.sh
