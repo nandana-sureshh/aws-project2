@@ -42,7 +42,8 @@ export class SQSQueueProvider implements QueueProvider {
 
     return response.Messages.map((msg: Message) => ({
       id: msg.ReceiptHandle!,
-      data: JSON.parse(msg.Body!) as Record<string, unknown>,
+      body: JSON.parse(msg.Body!) as Record<string, unknown>,
+      sentAt: new Date(),
     }));
   }
 
