@@ -17,7 +17,7 @@ export async function startSqsWorker() {
       
       for (const msg of messages) {
         try {
-          const documentId = msg.data.documentId as string;
+          const documentId = msg.body.documentId as string;
           if (documentId) {
             await processDocumentSummary(documentId);
           }
