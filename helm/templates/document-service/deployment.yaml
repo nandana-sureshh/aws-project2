@@ -35,9 +35,9 @@ spec:
               done
               echo "[init] Database is reachable"
           volumeMounts:
-        - name: uploads-scratch
-          mountPath: /uploads
-        envFrom:
+            - name: uploads-scratch
+              mountPath: /uploads
+          envFrom:
             - secretRef:
                 name: {{ .Values.secrets.name }}
           securityContext:
