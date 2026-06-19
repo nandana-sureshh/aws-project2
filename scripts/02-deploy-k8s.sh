@@ -54,6 +54,18 @@ kubectl wait --for=condition=Available \
 echo "✅ KGateway control plane is ready."
 echo ""
 
+# --- Step 4.5: Install External Secrets Operator (ESO) ---
+# Required before deploying CareSync because the Helm chart contains ClusterSecretStore resources
+echo "🔐 Step 4.5: Installing External Secrets Operator..."
+helm repo add external-secrets https://charts.external-secrets.io || true
+helm upgrade -i external-secrets external-secrets/external-secrets \
+  --namespace external-secrets \
+  --create-namespace \
+  --set installCRDs=true \
+  --wait
+echo "✅ External Secrets Operator installed."
+echo ""
+
 # --- Step 5: Deploy CareSync Helm Chart ---
 # This deploys: Namespace, GatewayClass, Gateway, HTTPRoutes, Services,
 # Deployments, ServiceAccounts, ExternalSecrets, NetworkPolicies, HPAs.
