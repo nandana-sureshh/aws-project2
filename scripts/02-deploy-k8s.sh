@@ -63,7 +63,11 @@ helm upgrade -i external-secrets external-secrets/external-secrets \
   --create-namespace \
   --set installCRDs=true \
   --wait
-echo "✅ External Secrets Operator installed."
+echo "⏳ Waiting for External Secrets Operator CRDs to register with API server..."
+sleep 5
+kubectl wait --for=condition=established crd/clustersecretstores.external-secrets.io --timeout=60s
+kubectl wait --for=condition=established crd/externalsecrets.external-secrets.io --timeout=60s
+echo "✅ External Secrets Operator installed and ready."
 echo ""
 
 # --- Step 5: Deploy CareSync Helm Chart ---
