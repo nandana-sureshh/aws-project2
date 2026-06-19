@@ -1,4 +1,7 @@
-resource "random_password" "db" { length = 16; special = false }
+resource "random_password" "db" {
+  length  = 16
+  special = false
+}
 resource "aws_db_subnet_group" "main" {
   name       = "${var.db_name}-subnet-group"
   subnet_ids = var.subnet_ids

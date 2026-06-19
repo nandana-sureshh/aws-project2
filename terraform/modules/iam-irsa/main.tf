@@ -23,7 +23,10 @@ resource "aws_iam_role" "albc" {
 data "aws_iam_policy_document" "eso_assume" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
-    principals { type = "Federated", identifiers = [var.oidc_provider_arn] }
+    principals {
+      type        = "Federated"
+      identifiers = [var.oidc_provider_arn]
+    }
     condition {
       test     = "StringEquals"
       variable = "${replace(var.oidc_provider_url, "https://", "")}:sub"
