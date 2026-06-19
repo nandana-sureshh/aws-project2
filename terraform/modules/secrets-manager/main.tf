@@ -3,19 +3,32 @@ resource "aws_secretsmanager_secret" "app" {
   kms_key_id  = var.kms_key_arn
 }
 resource "random_id" "id" { byte_length = 4 }
+
+resource "random_password" "jwt_secret" {
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+resource "random_password" "jwt_refresh_secret" {
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
 resource "aws_secretsmanager_secret_version" "initial" {
   secret_id = aws_secretsmanager_secret.app.id
   secret_string = jsonencode({
-    DATABASE_URL       = "REPLACE_ME_POSTGRES_URL"
-    JWT_SECRET         = "REPLACE_ME_JWT"
-    JWT_REFRESH_SECRET = "REPLACE_ME_REFRESH"
-    SQS_QUEUE_URL      = "REPLACE_ME_SQS_URL"
-    S3_BUCKET_NAME     = "REPLACE_ME_S3_BUCKET"
+    DATABASE_URL       = var.database_url
+    JWT_SECRET         = random_password.jwt_secret.result
+    JWT_REFRESH_SECRET = random_password.jwt_refresh_secret.result
+    SQS_QUEUE_URL      = var.sqs_queue_url
+    S3_BUCKET_NAME     = var.s3_bucket_name
     BEDROCK_MODEL_ID   = "amazon.nova-lite-v1:0"
     AWS_REGION         = "us-east-1"
-    SES_FROM_EMAIL     = "REPLACE_ME_SES"
-    FRONTEND_URL       = "REPLACE_ME_FRONTEND"
-    API_BASE_URL       = "REPLACE_ME_API_BASE"
-    NOTIFICATION_EMAIL = "REPLACE_ME_NOTIF_EMAIL"
+    SES_FROM_EMAIL     = var.ses_from_email
+    FRONTEND_URL       = var.frontend_url
+    API_BASE_URL       = var.api_base_url
+    NOTIFICATION_EMAIL = var.notification_email
   })
 }

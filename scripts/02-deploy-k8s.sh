@@ -90,14 +90,25 @@ fi
 SECRET_NAME=$(cd ../terraform/environments/dev && terraform output -raw db_secret_name)
 echo "🔑 Using AWS Secret: $SECRET_NAME"
 
-# Dynamically fetch AWS Account ID for IRSA
+# Dynamically fetch AWS Account ID and Region for ECR
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=$(aws configure get region || echo "us-east-1")
+ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/caresync"
+
 echo "☁️ AWS Account ID: $AWS_ACCOUNT_ID"
+echo "🐳 ECR Registry: $ECR_REGISTRY"
 
 helm upgrade --install caresync . \
   -f values.yaml \
   --set secrets.awsSecretName="${SECRET_NAME}" \
   --set awsAccountId="${AWS_ACCOUNT_ID}" \
+  --set services.authService.repository="${ECR_REGISTRY}/auth-service" \
+  --set services.userService.repository="${ECR_REGISTRY}/user-service" \
+  --set services.appointmentService.repository="${ECR_REGISTRY}/appointment-service" \
+  --set services.documentService.repository="${ECR_REGISTRY}/document-service" \
+  --set services.notificationService.repository="${ECR_REGISTRY}/notification-service" \
+  --set services.aiService.repository="${ECR_REGISTRY}/ai-service" \
+  --set services.frontend.repository="${ECR_REGISTRY}/frontend" \
   --namespace "${NAMESPACE}" \
   --create-namespace \
   --wait \
