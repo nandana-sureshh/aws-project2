@@ -22,8 +22,8 @@ module "eks" {
     }
   }
   cluster_addons = {
-    coredns = { resolve_conflicts = "OVERWRITE" }
-    vpc-cni = { resolve_conflicts = "OVERWRITE" }
-    kube-proxy = { resolve_conflicts = "OVERWRITE" }
+    coredns    = { resolve_conflicts_on_create = "OVERWRITE", resolve_conflicts_on_update = "OVERWRITE" }
+    vpc-cni    = { resolve_conflicts_on_create = "OVERWRITE", resolve_conflicts_on_update = "OVERWRITE" }
+    kube-proxy = { resolve_conflicts_on_create = "OVERWRITE", resolve_conflicts_on_update = "OVERWRITE" }
   }
 }

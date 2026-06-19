@@ -26,5 +26,31 @@ resource "aws_iam_role_policy" "lambda_policy" {
     ]
   })
 }
-# Assuming deployment zip already exists or handled by build script
-# (Skipped aws_lambda_function for brevity in script, it assumes zip is available)
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/functions/appointment-reminder"
+  output_path = "${path.module}/functions/appointment-reminder.zip"
+}
+
+resource "aws_lambda_function" "appointment_reminder" {
+  function_name    = "caresync-appointment-reminder"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "index.handler"
+  runtime          = "nodejs20.x"
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  timeout          = 60
+  memory_size      = 256
+
+  vpc_config {
+    subnet_ids         = var.subnet_ids
+    security_group_ids = [var.security_group_id]
+  }
+
+  environment {
+    variables = {
+      SECRET_NAME    = var.secret_name
+      SES_FROM_EMAIL = var.ses_from_email
+    }
+  }
+}

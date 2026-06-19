@@ -13,13 +13,17 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 2.11"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
+    }
   }
   backend "s3" {
-    bucket         = "caresync-dev-tfstate-664685894054"
-    key            = "dev/terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    dynamodb_table = "caresync-dev-tf-lock"
+    bucket   = "caresync-dev-tfstate-664685894054"
+    key      = "dev/terraform.tfstate"
+    region   = "us-east-1"
+    encrypt  = true
+    use_lockfile = true
   }
 }
 

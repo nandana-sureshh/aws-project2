@@ -68,8 +68,11 @@ terraform/**/*.tfstate.*
 terraform/**/crash.log
 terraform/providers/
 # terraform.tfvars contains sensitive values — NEVER commit
+terraform/**/*.tfvars
 # Terraform plan output
 terraform/plan.out
+# Lambda build artifacts
+terraform/**/functions/*.zip
 
 # AWS environment files (contain secret names/config for EC2)
 .env.aws
