@@ -82,8 +82,13 @@ elif [ ! -f "Chart.yaml" ]; then
   exit 1
 fi
 
+# Dynamically fetch the Secret Manager name created by Terraform
+SECRET_NAME=$(cd ../terraform/environments/dev && terraform output -raw db_secret_name)
+echo "🔑 Using AWS Secret: $SECRET_NAME"
+
 helm upgrade --install caresync . \
   -f values.yaml \
+  --set secrets.awsSecretName="${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
   --create-namespace \
   --wait \
