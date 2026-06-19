@@ -1,4 +1,4 @@
-import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, GetQueueAttributesCommand } from '@aws-sdk/client-sqs';
+import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand, GetQueueAttributesCommand, Message } from '@aws-sdk/client-sqs';
 import { QueueProvider, QueueMessage } from '../interfaces/QueueProvider';
 
 export class SQSQueueProvider implements QueueProvider {
@@ -40,7 +40,7 @@ export class SQSQueueProvider implements QueueProvider {
       return [];
     }
 
-    return response.Messages.map(msg => ({
+    return response.Messages.map((msg: Message) => ({
       id: msg.ReceiptHandle!,
       data: JSON.parse(msg.Body!) as Record<string, unknown>,
     }));

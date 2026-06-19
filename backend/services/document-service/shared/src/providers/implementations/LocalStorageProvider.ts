@@ -57,4 +57,19 @@ export class LocalStorageProvider implements StorageProvider {
       .then(() => true)
       .catch(() => false);
   }
+
+  async getUploadUrl(
+    originalName: string,
+    mimeType: string,
+    folder = 'uploads'
+  ): Promise<{ url: string; key: string; filename: string }> {
+    const ext = path.extname(originalName);
+    const filename = `${uuidv4()}${ext}`;
+    const key = `${folder}/${filename}`;
+    return {
+      url: `${this.baseUrl}/api/documents/local-upload`,
+      key,
+      filename
+    };
+  }
 }
