@@ -7,14 +7,34 @@ export const documentsApi = {
     appointmentId?: string,
     medicalRecordId?: string
   ): Promise<{ data: Document }> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (appointmentId) formData.append('appointmentId', appointmentId);
-    if (medicalRecordId) formData.append('medicalRecordId', medicalRecordId);
-
-    const { data } = await apiClient.post('/documents', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    // 1. Get presigned URL
+    const { data: presignData } = await apiClient.post('/documents/presigned-url', {
+      originalName: file.name,
+      mimeType: file.type,
     });
+
+    const { url, key, filename } = presignData.data;
+
+    // 2. Upload directly to S3
+    await fetch(url, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type,
+      },
+    });
+
+    // 3. Confirm upload with backend
+    const { data } = await apiClient.post('/documents/confirm-upload', {
+      key,
+      filename,
+      originalName: file.name,
+      mimeType: file.type,
+      size: file.size,
+      appointmentId,
+      medicalRecordId,
+    });
+
     return data;
   },
 

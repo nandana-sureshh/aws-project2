@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auth-service-sa
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: auth-service
+    {{- include "caresync.labels" . | nindent 4 }}
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::${AWS_ACCOUNT_ID}:role/caresync-dev-auth-service-role"
+automountServiceAccountToken: true

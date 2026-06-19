@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: notification-service-route
+  namespace: {{ .Values.namespace }}
+spec:
+  parentRefs:
+  - name: caresync-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/notification
+    backendRefs:
+    - name: notification-service
+      port: 80

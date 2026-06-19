@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: appointment-service-route
+  namespace: {{ .Values.namespace }}
+spec:
+  parentRefs:
+  - name: caresync-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api/appointment
+    backendRefs:
+    - name: appointment-service
+      port: 80

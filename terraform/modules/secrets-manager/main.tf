@@ -1,28 +1,21 @@
-# --- CareSync Application Secret Container ---
-#
-# Terraform creates the secret SHELL only.
-# Secret VALUES must be added manually after deployment via AWS Console or CLI.
-#
-# Required JSON structure (add via Console → Secrets Manager → caresync-dev-app-secrets → Edit):
-# {
-#   "DATABASE_URL": "postgresql://caresync_admin:PASSWORD@RDS_HOST:5432/caresync",
-#   "JWT_SECRET": "min-32-char-random-string",
-#   "JWT_REFRESH_SECRET": "min-32-char-random-string"
-# }
-
 resource "aws_secretsmanager_secret" "app" {
-  name        = "${var.project_name}-${var.environment}-app-secrets"
-  description = "CareSync backend secrets: DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET"
-
-  kms_key_id = var.kms_key_arn
-
-  # Zero recovery window — allows clean destroy/re-apply during development.
-  # Change to 7 for staging/production.
-  recovery_window_in_days = 0
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-app-secrets"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  name        = "caresync/app-secrets-${random_id.id.hex}"
+  kms_key_id  = var.kms_key_arn
+}
+resource "random_id" "id" { byte_length = 4 }
+resource "aws_secretsmanager_secret_version" "initial" {
+  secret_id = aws_secretsmanager_secret.app.id
+  secret_string = jsonencode({
+    DATABASE_URL       = "REPLACE_ME_POSTGRES_URL"
+    JWT_SECRET         = "REPLACE_ME_JWT"
+    JWT_REFRESH_SECRET = "REPLACE_ME_REFRESH"
+    SQS_QUEUE_URL      = "REPLACE_ME_SQS_URL"
+    S3_BUCKET_NAME     = "REPLACE_ME_S3_BUCKET"
+    BEDROCK_MODEL_ID   = "amazon.nova-lite-v1:0"
+    AWS_REGION         = "us-east-1"
+    SES_FROM_EMAIL     = "REPLACE_ME_SES"
+    FRONTEND_URL       = "REPLACE_ME_FRONTEND"
+    API_BASE_URL       = "REPLACE_ME_API_BASE"
+    NOTIFICATION_EMAIL = "REPLACE_ME_NOTIF_EMAIL"
+  })
 }

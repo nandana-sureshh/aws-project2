@@ -1,7 +1,7 @@
 {
   "name": "appointment-reminder",
   "version": "1.0.0",
-  "description": "CareSync appointment reminder Lambda — queries RDS, publishes to SNS",
+  "description": "CareSync appointment reminder Lambda — queries RDS, publishes to SES",
   "type": "module",
   "main": "index.mjs",
   "dependencies": {

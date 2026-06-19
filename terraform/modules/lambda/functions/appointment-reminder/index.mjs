@@ -24,7 +24,7 @@
  */
 
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import pg from 'pg';
 
 const { Client } = pg;
@@ -37,7 +37,8 @@ const REMINDER_HOURS = parseInt(process.env.REMINDER_WINDOW_HOURS ?? '24', 10);
 
 // ---- AWS SDK clients (region from Lambda env, credentials from execution role) ----
 const smClient = new SecretsManagerClient({ region: REGION });
-const snsClient = new SNSClient({ region: REGION });
+const sesClient = new SESClient({ region: REGION });
+const SES_FROM_EMAIL = process.env.SES_FROM_EMAIL;
 
 /**
  * Fetch DATABASE_URL from Secrets Manager.
@@ -80,6 +81,7 @@ async function getUpcomingAppointments(client) {
       pu.email       AS patient_email,
       du."firstName" AS doctor_first,
       du."lastName"  AS doctor_last,
+      du.email       AS doctor_email,
       d.specialization
     FROM appointments a
     JOIN patients     p  ON p.id = a."patientId"
@@ -135,10 +137,9 @@ async function insertReminderNotification(client, appointment) {
 }
 
 /**
- * Publish an email reminder to the SNS topic.
- * The SNS topic has an email subscription — AWS delivers the message as an email.
+ * Publish an email reminder via SES.
  */
-async function publishSNSReminder(appointment) {
+async function publishSESReminder(appointment) {
   const scheduledStr = new Date(appointment.scheduledAt).toLocaleString('en-US', {
     timeZone: 'UTC',
     dateStyle: 'full',
@@ -146,25 +147,52 @@ async function publishSNSReminder(appointment) {
   });
 
   const subject = `CareSync Appointment Reminder — ${scheduledStr} UTC`;
-  const message = [
-    `Hello ${appointment.patient_first} ${appointment.patient_last},`,
-    '',
-    `This is a reminder that you have an upcoming appointment:`,
-    '',
-    `  Date & Time : ${scheduledStr} UTC`,
-    `  Doctor      : Dr. ${appointment.doctor_first} ${appointment.doctor_last} (${appointment.specialization})`,
-    `  Reason      : ${appointment.reason}`,
-    `  Duration    : ${appointment.duration} minutes`,
-    '',
-    'Please contact us if you need to reschedule.',
-    '',
-    'CareSync Team',
-  ].join('\n');
+  
+  const patientHtml = `
+    <h2>Appointment Reminder</h2>
+    <p>Hello ${appointment.patient_first} ${appointment.patient_last},</p>
+    <p>This is a reminder that you have an upcoming appointment:</p>
+    <ul>
+      <li><strong>Date & Time:</strong> ${scheduledStr} UTC</li>
+      <li><strong>Doctor:</strong> Dr. ${appointment.doctor_first} ${appointment.doctor_last} (${appointment.specialization})</li>
+      <li><strong>Reason:</strong> ${appointment.reason}</li>
+      <li><strong>Duration:</strong> ${appointment.duration} minutes</li>
+    </ul>
+    <p>Please contact us if you need to reschedule.</p>
+    <p>Best regards,<br>CareSync Team</p>
+  `;
 
-  await snsClient.send(new PublishCommand({
-    TopicArn: SNS_TOPIC_ARN,
-    Subject: subject,
-    Message: message,
+  const doctorHtml = `
+    <h2>Upcoming Appointment</h2>
+    <p>Hello Dr. ${appointment.doctor_first} ${appointment.doctor_last},</p>
+    <p>This is a reminder for your upcoming appointment:</p>
+    <ul>
+      <li><strong>Date & Time:</strong> ${scheduledStr} UTC</li>
+      <li><strong>Patient:</strong> ${appointment.patient_first} ${appointment.patient_last}</li>
+      <li><strong>Reason:</strong> ${appointment.reason}</li>
+      <li><strong>Duration:</strong> ${appointment.duration} minutes</li>
+    </ul>
+    <p>Best regards,<br>CareSync System</p>
+  `;
+
+  // Send to patient
+  await sesClient.send(new SendEmailCommand({
+    Source: SES_FROM_EMAIL,
+    Destination: { ToAddresses: [appointment.patient_email] },
+    Message: {
+      Subject: { Data: subject },
+      Body: { Html: { Data: patientHtml } }
+    }
+  }));
+
+  // Send to doctor
+  await sesClient.send(new SendEmailCommand({
+    Source: SES_FROM_EMAIL,
+    Destination: { ToAddresses: [appointment.doctor_email] },
+    Message: {
+      Subject: { Data: subject },
+      Body: { Html: { Data: doctorHtml } }
+    }
   }));
 }
 
@@ -174,8 +202,8 @@ export const handler = async (event) => {
   console.log('[reminder] Appointment reminder Lambda started', { event });
 
   // Validate required environment variables
-  if (!SECRET_NAME || !SNS_TOPIC_ARN) {
-    throw new Error('Missing required environment variables: SECRET_NAME, SNS_TOPIC_ARN');
+  if (!SECRET_NAME || !SES_FROM_EMAIL) {
+    throw new Error('Missing required environment variables: SECRET_NAME, SES_FROM_EMAIL');
   }
 
   let dbClient;
@@ -202,8 +230,8 @@ export const handler = async (event) => {
         // 1. Write notification to DB (deduplication record + in-app notification)
         await insertReminderNotification(dbClient, appt);
 
-        // 2. Publish email via SNS
-        await publishSNSReminder(appt);
+        // 2. Publish email via SES
+        await publishSESReminder(appt);
 
         results.processed++;
         console.log(`[reminder] Sent reminder for appointment ${appt.appointment_id} (patient: ${appt.patient_email})`);

@@ -102,4 +102,25 @@ export class S3StorageProvider implements StorageProvider {
       return false;
     }
   }
+
+  async getUploadUrl(
+    originalName: string,
+    mimeType: string,
+    folder = 'uploads'
+  ): Promise<{ url: string; key: string; filename: string }> {
+    const ext = path.extname(originalName);
+    const filename = `${uuidv4()}${ext}`;
+    const key = `${folder}/${filename}`;
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      ContentType: mimeType,
+      ContentDisposition: `attachment; filename="${originalName}"`,
+    });
+
+    const url = await getSignedUrl(this.client, command, { expiresIn: 900 }); // 15 mins
+
+    return { url, key, filename };
+  }
 }

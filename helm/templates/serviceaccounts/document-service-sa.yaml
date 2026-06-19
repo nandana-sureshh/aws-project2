@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: document-service-sa
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: document-service
+    {{- include "caresync.labels" . | nindent 4 }}
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::${AWS_ACCOUNT_ID}:role/caresync-dev-document-service-role"
+automountServiceAccountToken: true

@@ -1,0 +1,41 @@
+
+namespace: caresync-dev
+environment: dev
+region: us-east-1
+
+gateway:
+  className: eg
+
+secrets:
+  name: caresync-app-secrets
+  awsSecretName: caresync/app-secrets-dev
+
+services:
+  authService:
+    repository: caresync/auth-service
+    tag: latest
+    port: 3001
+  userService:
+    repository: caresync/user-service
+    tag: latest
+    port: 3002
+  appointmentService:
+    repository: caresync/appointment-service
+    tag: latest
+    port: 3003
+  documentService:
+    repository: caresync/document-service
+    tag: latest
+    port: 3004
+  notificationService:
+    repository: caresync/notification-service
+    tag: latest
+    port: 3005
+  aiService:
+    repository: caresync/ai-service
+    tag: latest
+    port: 3006
+  frontend:
+    repository: caresync/frontend
+    tag: latest
+    port: 80

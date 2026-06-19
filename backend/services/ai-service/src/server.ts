@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { initSecrets, prisma, globalErrorHandler, notFoundHandler } from '@caresync/shared';
 import { handleSummarize } from './controllers/ai.controller';
+import { startSqsWorker } from './workers/sqs.worker';
 
 const app = express();
 
@@ -29,6 +30,9 @@ async function start() {
     await initSecrets();
     await prisma.$connect();
     console.log('✅ [ai-service] Database connected');
+    
+    startSqsWorker();
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 [ai-service] Running on port ${PORT}`);
     });

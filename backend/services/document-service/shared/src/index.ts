@@ -62,3 +62,4 @@ export { DatabaseNotificationProvider } from './providers/implementations/Databa
 export { ConsoleEventProvider } from './providers/implementations/ConsoleEventProvider';
 export { LocalQueueProvider } from './providers/implementations/LocalQueueProvider';
 export { HttpMockQueueProvider } from './providers/implementations/HttpMockQueueProvider';
+export { SQSQueueProvider } from './providers/implementations/SQSQueueProvider';

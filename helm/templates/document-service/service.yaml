@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: document-service
+spec:
+  selector:
+    app: document-service
+  ports:
+  - port: 80
+    targetPort: {{ .Values.services.documentService.port }}
+  type: ClusterIP

@@ -1,204 +1,57 @@
-# --- VPC ---
-resource "aws_vpc" "this" {
-  cidr_block           = var.vpc_cidr
+data "aws_availability_zones" "available" {}
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.8.1"
+  name = "${var.cluster_name}-vpc"
+  cidr = var.vpc_cidr
+  azs  = slice(data.aws_availability_zones.available.names, 0, 2)
+  private_subnets  = [cidrsubnet(var.vpc_cidr, 4, 0), cidrsubnet(var.vpc_cidr, 4, 1)]
+  public_subnets   = [cidrsubnet(var.vpc_cidr, 4, 2), cidrsubnet(var.vpc_cidr, 4, 3)]
+  database_subnets = [cidrsubnet(var.vpc_cidr, 4, 4), cidrsubnet(var.vpc_cidr, 4, 5)]
+  enable_nat_gateway = true
+  single_nat_gateway = var.single_nat
   enable_dns_hostnames = true
   enable_dns_support   = true
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-vpc"
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+  }
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
-
-# --- Public Subnets ---
-resource "aws_subnet" "public" {
-  count = length(var.public_subnet_cidrs)
-
-  vpc_id                  = aws_vpc.this.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = var.availability_zones[count.index]
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "${var.project_name}-public-${count.index + 1}"
+# VPC Endpoints
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = module.vpc.vpc_id
+  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids = module.vpc.private_route_table_ids
+}
+data "aws_region" "current" {}
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sts"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnets
+  private_dns_enabled = true
+  security_group_ids = [aws_security_group.vpce.id]
+}
+resource "aws_vpc_endpoint" "sqs" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.sqs"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = module.vpc.private_subnets
+  private_dns_enabled = true
+  security_group_ids = [aws_security_group.vpce.id]
+}
+resource "aws_security_group" "vpce" {
+  name        = "${var.cluster_name}-vpce-sg"
+  vpc_id      = module.vpc.vpc_id
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
   }
-}
-
-# --- Frontend Private Subnets ---
-resource "aws_subnet" "frontend" {
-  count = length(var.frontend_subnet_cidrs)
-
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.frontend_subnet_cidrs[count.index]
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name = "${var.project_name}-frontend-${count.index + 1}"
-  }
-}
-
-# --- Backend Private Subnets ---
-resource "aws_subnet" "backend" {
-  count = length(var.backend_subnet_cidrs)
-
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.backend_subnet_cidrs[count.index]
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name = "${var.project_name}-backend-${count.index + 1}"
-  }
-}
-
-# --- Database Private Subnets ---
-resource "aws_subnet" "database" {
-  count = length(var.database_subnet_cidrs)
-
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.database_subnet_cidrs[count.index]
-  availability_zone = var.availability_zones[count.index]
-
-  tags = {
-    Name = "${var.project_name}-database-${count.index + 1}"
-  }
-}
-
-# --- Internet Gateway ---
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
-
-# --- NAT Gateway Elastic IPs ---
-resource "aws_eip" "nat_a" {
-  domain = "vpc"
-
-  tags = {
-    Name = "${var.project_name}-nat-eip-a"
-  }
-}
-
-resource "aws_eip" "nat_b" {
-  domain = "vpc"
-
-  tags = {
-    Name = "${var.project_name}-nat-eip-b"
-  }
-}
-
-# --- NAT Gateways (High Availability) ---
-resource "aws_nat_gateway" "nat_a" {
-  allocation_id = aws_eip.nat_a.id
-  subnet_id     = aws_subnet.public[0].id
-
-  depends_on = [aws_internet_gateway.this]
-
-  tags = {
-    Name = "${var.project_name}-nat-a"
-  }
-}
-
-resource "aws_nat_gateway" "nat_b" {
-  allocation_id = aws_eip.nat_b.id
-  subnet_id     = aws_subnet.public[1].id
-
-  depends_on = [aws_internet_gateway.this]
-
-  tags = {
-    Name = "${var.project_name}-nat-b"
-  }
-}
-
-# --- Route Tables ---
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.this.id
-  }
-
-  tags = {
-    Name = "${var.project_name}-public-rt"
-  }
-}
-
-resource "aws_route_table" "private_a" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_a.id
-  }
-
-  tags = {
-    Name = "${var.project_name}-private-a-rt"
-  }
-}
-
-resource "aws_route_table" "private_b" {
-  vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_b.id
-  }
-
-  tags = {
-    Name = "${var.project_name}-private-b-rt"
-  }
-}
-
-resource "aws_route_table" "database" {
-  vpc_id = aws_vpc.this.id
-
-  tags = {
-    Name = "${var.project_name}-database-rt"
-  }
-}
-
-# --- Public Route Table Associations ---
-resource "aws_route_table_association" "public_a" {
-  subnet_id      = aws_subnet.public[0].id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_b" {
-  subnet_id      = aws_subnet.public[1].id
-  route_table_id = aws_route_table.public.id
-}
-
-# --- Private Route Table Associations (AZ-A) ---
-resource "aws_route_table_association" "frontend_a" {
-  subnet_id      = aws_subnet.frontend[0].id
-  route_table_id = aws_route_table.private_a.id
-}
-
-resource "aws_route_table_association" "backend_a" {
-  subnet_id      = aws_subnet.backend[0].id
-  route_table_id = aws_route_table.private_a.id
-}
-
-# --- Private Route Table Associations (AZ-B) ---
-resource "aws_route_table_association" "frontend_b" {
-  subnet_id      = aws_subnet.frontend[1].id
-  route_table_id = aws_route_table.private_b.id
-}
-
-resource "aws_route_table_association" "backend_b" {
-  subnet_id      = aws_subnet.backend[1].id
-  route_table_id = aws_route_table.private_b.id
-}
-
-# --- Database Route Table Associations ---
-resource "aws_route_table_association" "database_a" {
-  subnet_id      = aws_subnet.database[0].id
-  route_table_id = aws_route_table.database.id
-}
-
-resource "aws_route_table_association" "database_b" {
-  subnet_id      = aws_subnet.database[1].id
-  route_table_id = aws_route_table.database.id
 }

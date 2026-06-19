@@ -22,16 +22,48 @@ export async function uploadDocument(
     'documents'
   );
 
+  return confirmUpload(userId, {
+    key: uploaded.key,
+    filename: uploaded.filename,
+    originalName: uploaded.originalName,
+    mimeType: uploaded.mimeType,
+    size: uploaded.size,
+    appointmentId: body.appointmentId,
+    medicalRecordId: body.medicalRecordId
+  }, notificationProvider);
+}
+
+export async function generateUploadUrl(
+  originalName: string,
+  mimeType: string,
+  storageProvider: StorageProvider
+) {
+  return storageProvider.getUploadUrl(originalName, mimeType, 'documents');
+}
+
+export async function confirmUpload(
+  userId: string,
+  body: {
+    key: string;
+    filename: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+    appointmentId?: string;
+    medicalRecordId?: string;
+  },
+  notificationProvider: NotificationProvider
+) {
   const document = await prisma.document.create({
     data: {
       userId,
       appointmentId: body.appointmentId ?? null,
       medicalRecordId: body.medicalRecordId ?? null,
-      filename: uploaded.filename,
-      originalName: uploaded.originalName,
-      mimeType: uploaded.mimeType,
-      size: uploaded.size,
-      storageKey: uploaded.key,
+      filename: body.filename,
+      originalName: body.originalName,
+      mimeType: body.mimeType,
+      size: body.size,
+      storageKey: body.key,
     },
   });
 
@@ -39,7 +71,7 @@ export async function uploadDocument(
     userId,
     type: 'DOCUMENT_UPLOADED',
     title: 'Document Uploaded',
-    message: `Document "${file.originalname}" has been uploaded successfully.`,
+    message: `Document "${body.originalName}" has been uploaded successfully.`,
   });
 
   await createAuditLog({
@@ -47,10 +79,10 @@ export async function uploadDocument(
     action: 'UPLOAD',
     resource: 'documents',
     resourceId: document.id,
-    details: { filename: file.originalname, size: file.size },
+    details: { filename: body.originalName, size: body.size },
   });
 
-  // Trigger AI summarization mock queue dispatch
+  // Trigger AI summarization queue dispatch
   const queueProvider = createQueueProvider();
   if (document.mimeType === 'application/pdf' || document.mimeType === 'text/plain') {
     queueProvider.enqueue('ai-summary', { documentId: document.id }).catch((err) => {
@@ -69,8 +101,9 @@ export async function uploadDocument(
     });
   }
 
-  return { ...document, url: uploaded.url };
+  return { ...document, url: `/api/documents/${body.filename}/download` };
 }
+
 
 export async function downloadDocument(
   documentId: string,
