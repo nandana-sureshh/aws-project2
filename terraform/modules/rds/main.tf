@@ -7,7 +7,7 @@ resource "aws_db_subnet_group" "main" {
   subnet_ids = var.subnet_ids
 }
 resource "aws_db_instance" "main" {
-  identifier        = var.db_name
+  identifier        = replace(var.db_name, "_", "-")
   engine            = "postgres"
   engine_version    = "16"
   instance_class    = "db.t3.micro"

@@ -74,3 +74,5 @@ terraform/plan.out
 # AWS environment files (contain secret names/config for EC2)
 .env.aws
 backend/.env.aws
+**/.terraform/
+**/.terraform.lock.hcl
