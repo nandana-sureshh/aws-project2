@@ -53,19 +53,19 @@ echo ""
 
 # Discover proxy service using KGateway's canonical label
 PROXY_SVC=$(kubectl get svc -n "${NAMESPACE}" \
-  -l "gloo=kube-gateway" \
+  -l "kgateway=kube-gateway" \
   -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 
 if [ -n "${PROXY_SVC}" ]; then
   PROXY_PORT=$(kubectl get svc -n "${NAMESPACE}" \
-    -l "gloo=kube-gateway" \
+    -l "kgateway=kube-gateway" \
     -o jsonpath='{.items[0].spec.ports[?(@.name=="http")].port}' 2>/dev/null || true)
   [ -z "${PROXY_PORT}" ] && PROXY_PORT=$(kubectl get svc -n "${NAMESPACE}" \
-    -l "gloo=kube-gateway" \
+    -l "kgateway=kube-gateway" \
     -o jsonpath='{.items[0].spec.ports[0].port}' 2>/dev/null || true)
   echo "✅ KGateway proxy service: ${PROXY_SVC} (port ${PROXY_PORT})"
 else
-  echo "⚠️  KGateway proxy service not found yet. Check: kubectl get svc -n ${NAMESPACE} -l gloo=kube-gateway"
+  echo "⚠️  KGateway proxy service not found yet. Check: kubectl get svc -n ${NAMESPACE} -l kgateway=kube-gateway"
 fi
 
 # --- 6. ALB Ingress Status ---
