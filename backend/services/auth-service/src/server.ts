@@ -20,9 +20,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(morgan('combined'));
 
-const limiter = rateLimit({ windowMs: 900000, max: 100 });
-app.use('/api', limiter);
-
 app.get('/api/health', (_req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -30,6 +27,11 @@ app.get('/api/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+const limiter = rateLimit({ windowMs: 900000, max: 100 });
+app.use('/api/auth', limiter);
+
+
 
 app.use('/api/auth', authRoutes);
 app.use(notFoundHandler);
