@@ -76,6 +76,7 @@ resource "aws_iam_role_policy" "ai_service_policy" {
     Version = "2012-10-17"
     Statement = [
       { Effect = "Allow", Action = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"], Resource = var.sqs_queue_arn },
+      { Effect = "Allow", Action = ["s3:ListBucket"], Resource = var.s3_bucket_arn },
       { Effect = "Allow", Action = ["s3:GetObject"], Resource = "${var.s3_bucket_arn}/*" },
       { Effect = "Allow", Action = ["bedrock:InvokeModel"], Resource = "*" },
       { Effect = "Allow", Action = ["kms:Decrypt"], Resource = var.kms_key_arn }
@@ -100,6 +101,7 @@ resource "aws_iam_role_policy" "doc_service_policy" {
     Version = "2012-10-17"
     Statement = [
       { Effect = "Allow", Action = ["sqs:SendMessage"], Resource = var.sqs_queue_arn },
+      { Effect = "Allow", Action = ["s3:ListBucket"], Resource = var.s3_bucket_arn },
       { Effect = "Allow", Action = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"], Resource = "${var.s3_bucket_arn}/*" },
       { Effect = "Allow", Action = ["kms:GenerateDataKey", "kms:Decrypt"], Resource = var.kms_key_arn }
     ]

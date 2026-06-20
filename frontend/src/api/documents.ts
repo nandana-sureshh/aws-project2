@@ -16,13 +16,18 @@ export const documentsApi = {
     const { url, key, filename } = presignData.data;
 
     // 2. Upload directly to S3
-    await fetch(url, {
+    const uploadRes = await fetch(url, {
       method: 'PUT',
       body: file,
       headers: {
         'Content-Type': file.type,
+        'Content-Disposition': `attachment; filename="${file.name}"`
       },
     });
+
+    if (!uploadRes.ok) {
+      throw new Error(`S3 upload failed: ${uploadRes.statusText}`);
+    }
 
     // 3. Confirm upload with backend
     const { data } = await apiClient.post('/documents/confirm-upload', {
