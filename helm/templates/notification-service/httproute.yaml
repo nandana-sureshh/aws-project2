@@ -10,7 +10,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/notification
+        value: /api/notifications
     backendRefs:
     - name: notification-service
       port: 80

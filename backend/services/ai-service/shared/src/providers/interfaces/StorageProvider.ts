@@ -22,4 +22,10 @@ export interface StorageProvider {
   getFileUrl(key: string): Promise<string>;
 
   fileExists(key: string): Promise<boolean>;
+
+  getUploadUrl(
+    originalName: string,
+    mimeType: string,
+    folder?: string
+  ): Promise<{ url: string; key: string; filename: string }>;
 }

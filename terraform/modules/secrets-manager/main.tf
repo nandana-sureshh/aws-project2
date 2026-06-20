@@ -30,5 +30,8 @@ resource "aws_secretsmanager_secret_version" "initial" {
     FRONTEND_URL       = var.frontend_url
     API_BASE_URL       = var.api_base_url
     NOTIFICATION_EMAIL = var.notification_email
+    CORS_ORIGIN        = var.frontend_url
+    STORAGE_PROVIDER   = "s3"
+    QUEUE_PROVIDER     = "sqs"
   })
 }

@@ -10,7 +10,13 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/user
+        value: /api/patients
+    - path:
+        type: PathPrefix
+        value: /api/doctors
+    - path:
+        type: PathPrefix
+        value: /api/admin
     backendRefs:
     - name: user-service
       port: 80

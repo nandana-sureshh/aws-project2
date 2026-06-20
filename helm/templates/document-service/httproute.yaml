@@ -10,7 +10,7 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/document
+        value: /api/documents
     backendRefs:
     - name: document-service
       port: 80

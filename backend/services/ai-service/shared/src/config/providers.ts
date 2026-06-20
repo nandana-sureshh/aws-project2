@@ -10,6 +10,7 @@ import { DatabaseNotificationProvider } from '../providers/implementations/Datab
 import { ConsoleEventProvider } from '../providers/implementations/ConsoleEventProvider';
 import { LocalQueueProvider } from '../providers/implementations/LocalQueueProvider';
 import { HttpMockQueueProvider } from '../providers/implementations/HttpMockQueueProvider';
+import { SQSQueueProvider } from '../providers/implementations/SQSQueueProvider';
 
 /**
  * Provider Registry — AWS Migration Point
@@ -57,6 +58,13 @@ export function createEventProvider(): EventProvider {
 
 export function createQueueProvider(): QueueProvider {
   const provider = process.env.QUEUE_PROVIDER ?? 'local';
+  if (provider === 'sqs') {
+    const queueUrl = process.env.SQS_QUEUE_URL;
+    const region = process.env.AWS_REGION ?? 'us-east-1';
+    if (!queueUrl) throw new Error('SQS_QUEUE_URL is required when QUEUE_PROVIDER=sqs');
+    console.log(`📨 Queue: SQS (region: ${region})`);
+    return new SQSQueueProvider({ 'ai-summary': queueUrl }, region);
+  }
   if (provider === 'http') {
     const aiServiceUrl = process.env.AI_SERVICE_URL ?? 'http://ai-service:3006/internal/summarize';
     return new HttpMockQueueProvider({
@@ -64,5 +72,4 @@ export function createQueueProvider(): QueueProvider {
     });
   }
   return new LocalQueueProvider();
-  // Future: return new SQSQueueProvider(process.env.SQS_QUEUE_URL!);
 }

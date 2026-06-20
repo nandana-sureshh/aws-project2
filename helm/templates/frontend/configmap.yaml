@@ -6,5 +6,5 @@ metadata:
 data:
   env-config.js: |
     window._env_ = {
-      API_BASE_URL: "http://caresync-alb.us-east-1.elb.amazonaws.com"
+      API_BASE_URL: "{{ .Values.apiBaseUrl }}"
     };

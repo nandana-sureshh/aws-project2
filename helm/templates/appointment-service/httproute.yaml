@@ -10,7 +10,10 @@ spec:
   - matches:
     - path:
         type: PathPrefix
-        value: /api/appointment
+        value: /api/appointments
+    - path:
+        type: PathPrefix
+        value: /api/records
     backendRefs:
     - name: appointment-service
       port: 80

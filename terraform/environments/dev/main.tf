@@ -42,8 +42,8 @@ module "secrets-manager" {
   database_url       = "postgresql://${var.db_username}:${module.rds.db_password}@${module.rds.endpoint}/caresync_dev"
   sqs_queue_url      = module.sqs.queue_url
   s3_bucket_name     = module.s3.bucket_name
-  frontend_url       = "http://REPLACE_ME_ALB_URL" # Will be updated dynamically by frontend code or external if needed
-  api_base_url       = "http://REPLACE_ME_ALB_URL/api"
+  frontend_url       = "http://k8s-caresync-caresync-cfc825078f-579067473.us-east-1.elb.amazonaws.com"
+  api_base_url       = "http://k8s-caresync-caresync-cfc825078f-579067473.us-east-1.elb.amazonaws.com/api"
   ses_from_email     = var.ses_from_email
   notification_email = var.notification_email
 }
