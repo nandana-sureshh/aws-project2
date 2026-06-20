@@ -17,7 +17,16 @@ resource "aws_iam_role" "albc" {
   name               = "${var.cluster_name}-albc-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 }
-# (ALBC Policy skipped here for brevity, typically attached via AWS managed policy or downloaded JSON)
+resource "aws_iam_policy" "albc_policy" {
+  name        = "${var.cluster_name}-albc-policy"
+  description = "IAM policy for AWS Load Balancer Controller"
+  policy      = file("${path.module}/policies/iam_policy.json")
+}
+
+resource "aws_iam_role_policy_attachment" "albc_attach" {
+  role       = aws_iam_role.albc.name
+  policy_arn = aws_iam_policy.albc_policy.arn
+}
 
 # External Secrets Role
 data "aws_iam_policy_document" "eso_assume" {
