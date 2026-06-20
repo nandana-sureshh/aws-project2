@@ -125,9 +125,9 @@ echo "    (KGateway creates the proxy service after detecting the Gateway resour
 
 PROXY_SVC=""
 for i in {1..30}; do
-  # KGateway labels its proxy services with: gloo=kube-gateway
+  # KGateway labels its proxy services with: kgateway=kube-gateway
   PROXY_SVC=$(kubectl get svc -n "${NAMESPACE}" \
-    -l "gloo=kube-gateway" \
+    -l "kgateway=kube-gateway" \
     -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
   if [ -n "${PROXY_SVC}" ]; then
     echo "✅ KGateway proxy service detected: ${PROXY_SVC}"
@@ -153,13 +153,13 @@ fi
 echo ""
 echo "🔎 Step 7: Dynamically discovering proxy HTTP port..."
 PROXY_PORT=$(kubectl get svc -n "${NAMESPACE}" \
-  -l "gloo=kube-gateway" \
+  -l "kgateway=kube-gateway" \
   -o jsonpath='{.items[0].spec.ports[?(@.name=="http")].port}' 2>/dev/null || true)
 
 # Fallback: if the port named "http" does not exist, pick the first port
 if [ -z "${PROXY_PORT}" ]; then
   PROXY_PORT=$(kubectl get svc -n "${NAMESPACE}" \
-    -l "gloo=kube-gateway" \
+    -l "kgateway=kube-gateway" \
     -o jsonpath='{.items[0].spec.ports[0].port}' 2>/dev/null || true)
 fi
 
