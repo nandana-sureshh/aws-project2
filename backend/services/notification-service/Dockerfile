@@ -13,6 +13,7 @@ COPY src/ ./src/
 COPY prisma/ ./prisma/
 COPY shared/ ./shared/
 
+RUN apk add --no-cache openssl
 RUN npx --yes prisma generate --schema=./prisma/schema.prisma
 RUN npm run build --prefix shared
 RUN npm run build
@@ -37,6 +38,9 @@ COPY --from=builder /app/dist ./dist
 
 COPY docker-entrypoint.sh ./docker-entrypoint.sh
 RUN sed -i 's/\r//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
+
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3005
 

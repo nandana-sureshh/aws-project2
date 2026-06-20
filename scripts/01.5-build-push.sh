@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Enable modern BuildKit to fix deprecation warnings
+export DOCKER_BUILDKIT=1
+
 # Dynamically fetch AWS Region and Account ID
 REGION=$(aws configure get region || echo "us-east-1")
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
