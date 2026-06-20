@@ -116,7 +116,6 @@ export class S3StorageProvider implements StorageProvider {
       Bucket: this.bucketName,
       Key: key,
       ContentType: mimeType,
-      ContentDisposition: `attachment; filename="${originalName}"`,
     });
 
     const url = await getSignedUrl(this.client, command, { expiresIn: 900 }); // 15 mins
